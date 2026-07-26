@@ -36,6 +36,11 @@ const STATUS_TONE_MAP: Record<string, BadgeTone> = {
   // generic
   ACTIVE: "success",
   INACTIVE: "neutral",
+  // Audit actions
+  CREATE: "success",
+  UPDATE: "info",
+  DELETE: "critical",
+  LOGIN: "neutral",
 };
 
 export function StatusBadge({ status, className }: { status: string; className?: string }) {
