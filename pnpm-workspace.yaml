@@ -1,0 +1,9 @@
+onlyBuiltDependencies:
+  - "@prisma/client"
+  - "@prisma/engines"
+  - prisma
+  - bcryptjs
+  - esbuild
+  - sharp
+  - unrs-resolver
+  - "@tailwindcss/oxide"
