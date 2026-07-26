@@ -12,7 +12,7 @@ export function Header({
   user: { name: string; email: string; role: Role };
 }) {
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/80 sm:px-6 print:hidden">
       <MobileSidebar role={user.role} />
 
       <div className="hidden lg:block">

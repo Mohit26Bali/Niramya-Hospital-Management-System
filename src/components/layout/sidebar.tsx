@@ -12,7 +12,7 @@ export function Sidebar({ role }: { role: Role }) {
   const items = visibleNavItems(role);
 
   return (
-    <aside className="hidden w-[260px] shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:flex">
+    <aside className="hidden w-[260px] shrink-0 flex-col bg-sidebar text-sidebar-foreground lg:flex print:hidden">
       <div className="flex h-16 items-center gap-2.5 px-5">
         <Image src="/logo.png" alt="Niramaya" width={28} height={28} className="rounded-md" />
         <span className="text-sm font-semibold text-white">Niramaya</span>
