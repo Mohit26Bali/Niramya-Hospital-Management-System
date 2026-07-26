@@ -5,7 +5,19 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toast } from "sonner";
 import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
-import type { Patient } from "@prisma/client";
+import type {
+  Admission,
+  Appointment,
+  Department,
+  Doctor,
+  Invoice,
+  InvoiceItem,
+  MedicalRecord,
+  Patient,
+  Prescription,
+  PrescriptionItem,
+  Room,
+} from "@prisma/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,9 +26,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormDialog } from "@/components/shared/form-dialog";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { PatientForm } from "@/components/patients/patient-form";
+import { PatientTimeline } from "@/components/patients/patient-timeline";
 import { deletePatientAction } from "@/actions/patient.actions";
-import { avatarUrl, calculateAge, formatDate, initials } from "@/lib/utils";
+import { avatarUrl, calculateAge, formatCurrency, formatDate, formatDateTime, initials } from "@/lib/utils";
 
 const BLOOD_GROUP_LABELS: Record<string, string> = {
   A_POS: "A+",
@@ -33,10 +47,20 @@ export function PatientDetail({
   patient,
   canUpdate,
   canDelete,
+  appointments,
+  medicalRecords,
+  prescriptions,
+  admissions,
+  invoices,
 }: {
   patient: Patient;
   canUpdate: boolean;
   canDelete: boolean;
+  appointments: (Appointment & { doctor: Doctor; department: Department })[];
+  medicalRecords: (MedicalRecord & { doctor: Doctor })[];
+  prescriptions: (Prescription & { doctor: Doctor; items: PrescriptionItem[] })[];
+  admissions: (Admission & { doctor: Doctor; room: Room })[];
+  invoices: (Invoice & { items: InvoiceItem[] })[];
 }) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
@@ -104,6 +128,7 @@ export function PatientDetail({
       <Tabs defaultValue="overview">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
           <TabsTrigger value="medical-history">Medical History</TabsTrigger>
           <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
@@ -199,29 +224,128 @@ export function PatientDetail({
           </div>
         </TabsContent>
 
+        <TabsContent value="timeline">
+          <PatientTimeline
+            appointments={appointments}
+            medicalRecords={medicalRecords}
+            prescriptions={prescriptions}
+            admissions={admissions}
+            invoices={invoices}
+          />
+        </TabsContent>
+
         <TabsContent value="appointments">
-          {/* Placeholder — will be wired to real Appointment data once Appointment CRUD exists */}
-          <EmptyState title="No appointments yet" description="Upcoming appointments for this patient will appear here." />
+          {appointments.length === 0 ? (
+            <EmptyState title="No appointments yet" description="Upcoming appointments for this patient will appear here." />
+          ) : (
+            <div className="space-y-2">
+              {appointments.map((a) => (
+                <Card key={a.id} className="shadow-none">
+                  <CardContent className="flex items-center justify-between gap-4 p-4">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Dr. {a.doctor.firstName} {a.doctor.lastName} · {a.department.name}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{formatDateTime(a.scheduledAt)}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{a.reason}</p>
+                    </div>
+                    <StatusBadge status={a.status} />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="medical-history">
-          {/* Placeholder — will be wired to real MedicalRecord data once MedicalRecord CRUD exists */}
-          <EmptyState title="No medical history yet" description="Visit records and diagnoses will appear here." />
+          {medicalRecords.length === 0 ? (
+            <EmptyState title="No medical history yet" description="Visit records and diagnoses will appear here." />
+          ) : (
+            <div className="space-y-2">
+              {medicalRecords.map((m) => (
+                <Card key={m.id} className="shadow-none">
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium text-foreground">{m.diagnosis}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      Dr. {m.doctor.firstName} {m.doctor.lastName} · {formatDate(m.visitDate)}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{m.chiefComplaint}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="prescriptions">
-          {/* Placeholder — will be wired to real Prescription data once Prescription CRUD exists */}
-          <EmptyState title="No prescriptions yet" description="Prescribed medications will appear here." />
+          {prescriptions.length === 0 ? (
+            <EmptyState title="No prescriptions yet" description="Prescribed medications will appear here." />
+          ) : (
+            <div className="space-y-2">
+              {prescriptions.map((p) => (
+                <Card key={p.id} className="shadow-none">
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium text-foreground">
+                      Dr. {p.doctor.firstName} {p.doctor.lastName} · {formatDate(p.issuedAt)}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {p.items.map((i) => `${i.medicineName} (${i.dosage})`).join(", ")}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="billing">
-          {/* Placeholder — will be wired to real Invoice data once Billing CRUD exists */}
-          <EmptyState title="No billing records yet" description="Invoices and payment history will appear here." />
+          {invoices.length === 0 ? (
+            <EmptyState title="No billing records yet" description="Invoices and payment history will appear here." />
+          ) : (
+            <div className="space-y-2">
+              {invoices.map((inv) => (
+                <Card key={inv.id} className="shadow-none">
+                  <CardContent className="flex items-center justify-between gap-4 p-4">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{inv.invoiceNumber}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">{formatDate(inv.issuedAt)}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-foreground">
+                        {formatCurrency(Number(inv.totalAmount))}
+                      </span>
+                      <StatusBadge status={inv.status} />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="admissions">
-          {/* Placeholder — will be wired to real Admission data once Admission CRUD exists */}
-          <EmptyState title="No admission history yet" description="Hospital admission records will appear here." />
+          {admissions.length === 0 ? (
+            <EmptyState title="No admission history yet" description="Hospital admission records will appear here." />
+          ) : (
+            <div className="space-y-2">
+              {admissions.map((ad) => (
+                <Card key={ad.id} className="shadow-none">
+                  <CardContent className="flex items-center justify-between gap-4 p-4">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        Room {ad.room.roomNumber} · Dr. {ad.doctor.firstName} {ad.doctor.lastName}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {formatDate(ad.admittedAt)}
+                        {ad.dischargedAt ? ` – ${formatDate(ad.dischargedAt)}` : ""}
+                      </p>
+                    </div>
+                    <StatusBadge status={ad.status} />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </div>
