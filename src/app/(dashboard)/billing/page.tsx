@@ -17,7 +17,7 @@ export default async function BillingPage({
     <div>
       <PageHeader title="Billing" description="Manage patient invoices and payments" />
       <InvoicesTable
-        result={{ ...result, data: result.data as InvoiceRow[] }}
+        result={{ ...result, data: JSON.parse(JSON.stringify(result.data)) as InvoiceRow[] }}
         canCreate={can(session?.user.role, "billing", "create")}
         canDelete={can(session?.user.role, "billing", "delete")}
       />

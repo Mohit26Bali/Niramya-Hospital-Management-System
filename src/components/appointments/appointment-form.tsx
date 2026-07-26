@@ -33,7 +33,10 @@ import {
 import type { Appointment, Department, Doctor } from "@prisma/client";
 
 type LightPatient = { id: string; firstName: string; lastName: string; patientNumber: string };
-type DoctorWithDept = Doctor & { department: Department };
+type DoctorWithDept = Omit<Doctor, "consultationFee"> & {
+  consultationFee: number;
+  department: Department;
+};
 
 export function AppointmentForm({
   appointment,
@@ -48,7 +51,7 @@ export function AppointmentForm({
 
   useEffect(() => {
     listAllActivePatientsAction().then(setPatients);
-    listAllActiveDoctorsAction().then((data) => setDoctors(data as DoctorWithDept[]));
+    listAllActiveDoctorsAction().then((data) => setDoctors(data));
   }, []);
 
   const form = useForm<AppointmentFormValues>({

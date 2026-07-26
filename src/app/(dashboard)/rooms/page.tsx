@@ -16,7 +16,7 @@ export default async function RoomsPage({
     <div>
       <PageHeader title="Rooms" description="Manage hospital rooms and occupancy" />
       <RoomsView
-        result={result}
+        result={{ ...result, data: JSON.parse(JSON.stringify(result.data)) }}
         canCreate={can(session?.user.role, "room", "create")}
         canEdit={can(session?.user.role, "room", "update")}
       />

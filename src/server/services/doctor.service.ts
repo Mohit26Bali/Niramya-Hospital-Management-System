@@ -38,11 +38,12 @@ export async function listDoctors(params: PaginationParams) {
 }
 
 export async function listAllActiveDoctors() {
-  return prisma.doctor.findMany({
+  const doctors = await prisma.doctor.findMany({
     where: { isActive: true },
     orderBy: { lastName: "asc" },
     include: { department: true },
   });
+  return doctors.map((d) => ({ ...d, consultationFee: Number(d.consultationFee) }));
 }
 
 async function generateEmployeeCode() {

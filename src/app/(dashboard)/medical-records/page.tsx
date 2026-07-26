@@ -16,7 +16,7 @@ export default async function MedicalRecordsPage({
     <div>
       <PageHeader title="Medical Records" description="Patient visit history, diagnoses, and vitals" />
       <MedicalRecordsTable
-        result={result}
+        result={{ ...result, data: JSON.parse(JSON.stringify(result.data)) }}
         canCreate={can(session?.user.role, "medicalRecord", "create")}
         canEdit={can(session?.user.role, "medicalRecord", "update")}
         canDelete={can(session?.user.role, "medicalRecord", "delete")}

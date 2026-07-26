@@ -28,7 +28,11 @@ export async function listRooms(params: PaginationParams) {
 }
 
 export async function listAllActiveRooms() {
-  return prisma.room.findMany({ where: { isActive: true }, orderBy: { roomNumber: "asc" } });
+  const rooms = await prisma.room.findMany({
+    where: { isActive: true },
+    orderBy: { roomNumber: "asc" },
+  });
+  return rooms.map((r) => ({ ...r, ratePerDay: Number(r.ratePerDay) }));
 }
 
 export async function createRoom(input: RoomInput, actor: Actor) {

@@ -17,7 +17,7 @@ export default async function AdmissionsPage({
     <div>
       <PageHeader title="Admissions" description="Manage patient admissions, transfers, and discharges" />
       <AdmissionsTable
-        result={{ ...result, data: result.data as AdmissionRow[] }}
+        result={{ ...result, data: JSON.parse(JSON.stringify(result.data)) as AdmissionRow[] }}
         canCreate={can(session?.user.role, "admission", "create")}
         canDelete={can(session?.user.role, "admission", "delete")}
         defaultAdmittedBy={session?.user.name ?? ""}

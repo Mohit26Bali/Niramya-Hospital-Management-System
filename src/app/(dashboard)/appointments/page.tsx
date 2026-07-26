@@ -17,7 +17,7 @@ export default async function AppointmentsPage({
     <div>
       <PageHeader title="Appointments" description="Schedule and manage patient appointments" />
       <AppointmentsView
-        result={{ ...result, data: result.data as AppointmentRow[] }}
+        result={{ ...result, data: JSON.parse(JSON.stringify(result.data)) as AppointmentRow[] }}
         canCreate={can(session?.user.role, "appointment", "create")}
       />
     </div>

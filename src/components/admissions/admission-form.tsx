@@ -31,6 +31,8 @@ import {
 import type { Admission, Doctor, Nurse, Room } from "@prisma/client";
 
 type LightPatient = { id: string; firstName: string; lastName: string; patientNumber: string };
+type LightDoctor = Omit<Doctor, "consultationFee"> & { consultationFee: number };
+type LightRoom = Omit<Room, "ratePerDay"> & { ratePerDay: number };
 const UNASSIGNED_NURSE = "unassigned";
 
 export function AdmissionForm({
@@ -45,9 +47,9 @@ export function AdmissionForm({
   const isEdit = !!admission;
   const [isPending, startTransition] = useTransition();
   const [patients, setPatients] = useState<LightPatient[]>([]);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [doctors, setDoctors] = useState<LightDoctor[]>([]);
   const [nurses, setNurses] = useState<Nurse[]>([]);
-  const [rooms, setRooms] = useState<Room[]>([]);
+  const [rooms, setRooms] = useState<LightRoom[]>([]);
 
   useEffect(() => {
     listAllActivePatientsAction().then(setPatients);

@@ -15,7 +15,10 @@ export default async function DoctorsPage({
   return (
     <div>
       <PageHeader title="Doctors" description="Manage doctors and their consultation details" />
-      <DoctorsTable result={result} canCreate={can(session?.user.role, "doctor", "create")} />
+      <DoctorsTable
+        result={{ ...result, data: JSON.parse(JSON.stringify(result.data)) }}
+        canCreate={can(session?.user.role, "doctor", "create")}
+      />
     </div>
   );
 }

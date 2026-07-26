@@ -48,11 +48,11 @@ export default async function PatientDetailPage({
       patient={patient}
       canUpdate={can(session?.user.role, "patient", "update")}
       canDelete={can(session?.user.role, "patient", "delete")}
-      appointments={appointments}
-      medicalRecords={medicalRecords}
-      prescriptions={prescriptions}
-      admissions={admissions}
-      invoices={invoices}
+      appointments={JSON.parse(JSON.stringify(appointments))}
+      medicalRecords={JSON.parse(JSON.stringify(medicalRecords))}
+      prescriptions={JSON.parse(JSON.stringify(prescriptions))}
+      admissions={JSON.parse(JSON.stringify(admissions))}
+      invoices={JSON.parse(JSON.stringify(invoices))}
     />
   );
 }
