@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 
 export function LoginForm() {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/";
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
   const [state, formAction, isPending] = useActionState(loginAction, undefined);
 
   return (

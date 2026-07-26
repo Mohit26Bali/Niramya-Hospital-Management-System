@@ -28,7 +28,7 @@ export async function createInvoiceAction(input: InvoiceInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/billing");
+  revalidatePath("/dashboard/billing");
   return invoice;
 }
 
@@ -40,8 +40,8 @@ export async function recordPaymentAction(id: string, input: RecordPaymentInput)
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/billing");
-  revalidatePath(`/billing/${id}`);
+  revalidatePath("/dashboard/billing");
+  revalidatePath(`/dashboard/billing/${id}`);
 }
 
 export async function deleteInvoiceAction(id: string) {
@@ -51,5 +51,5 @@ export async function deleteInvoiceAction(id: string) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/billing");
+  revalidatePath("/dashboard/billing");
 }

@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 
 export function QuickActions() {
   const actions = [
-    { href: "/patients", label: "Register Patient", icon: UserPlus },
-    { href: "/appointments", label: "Schedule Appointment", icon: CalendarPlus },
-    { href: "/admissions", label: "Admit Patient", icon: FilePlus },
-    { href: "/billing", label: "Create Invoice", icon: ReceiptText },
+    { href: "/dashboard/patients", label: "Register Patient", icon: UserPlus },
+    { href: "/dashboard/appointments", label: "Schedule Appointment", icon: CalendarPlus },
+    { href: "/dashboard/admissions", label: "Admit Patient", icon: FilePlus },
+    { href: "/dashboard/billing", label: "Create Invoice", icon: ReceiptText },
   ];
 
   return (

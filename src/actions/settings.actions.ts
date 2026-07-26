@@ -17,5 +17,5 @@ export async function updateHospitalProfileAction(input: HospitalProfileInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/settings");
+  revalidatePath("/dashboard/settings");
 }

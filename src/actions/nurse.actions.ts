@@ -23,7 +23,7 @@ export async function createNurseAction(input: NurseCreateInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/nurses");
+  revalidatePath("/dashboard/nurses");
 }
 
 export async function updateNurseAction(id: string, input: NurseInput) {
@@ -34,7 +34,7 @@ export async function updateNurseAction(id: string, input: NurseInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/nurses");
+  revalidatePath("/dashboard/nurses");
 }
 
 export async function deleteNurseAction(id: string) {
@@ -44,5 +44,5 @@ export async function deleteNurseAction(id: string) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/nurses");
+  revalidatePath("/dashboard/nurses");
 }

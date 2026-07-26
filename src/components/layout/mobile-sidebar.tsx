@@ -31,7 +31,8 @@ export function MobileSidebar({ role }: { role: Role }) {
         </div>
         <nav className="space-y-1 px-3 py-2">
           {items.map((item) => {
-            const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            const active =
+              item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
             const Icon = item.icon;
             return (
               <Link

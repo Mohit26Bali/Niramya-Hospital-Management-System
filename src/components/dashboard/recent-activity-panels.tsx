@@ -28,7 +28,7 @@ export function RecentPatientsPanel({
           <ul className="space-y-3">
             {patients.map((p) => (
               <li key={p.id}>
-                <Link href={`/patients/${p.id}`} className="flex items-center gap-3 group">
+                <Link href={`/dashboard/patients/${p.id}`} className="flex items-center gap-3 group">
                   <Avatar className="size-8">
                     <AvatarFallback className="bg-accent text-xs text-accent-foreground">
                       {initials(`${p.firstName} ${p.lastName}`)}

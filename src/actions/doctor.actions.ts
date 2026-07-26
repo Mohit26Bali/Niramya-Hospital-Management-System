@@ -23,7 +23,7 @@ export async function createDoctorAction(input: DoctorCreateInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/doctors");
+  revalidatePath("/dashboard/doctors");
 }
 
 export async function updateDoctorAction(id: string, input: DoctorInput) {
@@ -34,7 +34,7 @@ export async function updateDoctorAction(id: string, input: DoctorInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/doctors");
+  revalidatePath("/dashboard/doctors");
 }
 
 export async function deleteDoctorAction(id: string) {
@@ -44,5 +44,5 @@ export async function deleteDoctorAction(id: string) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/doctors");
+  revalidatePath("/dashboard/doctors");
 }

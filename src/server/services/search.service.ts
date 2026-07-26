@@ -61,7 +61,7 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       id: p.id,
       title: `${p.firstName} ${p.lastName}`,
       subtitle: `${p.patientNumber} · ${p.phone}`,
-      href: `/patients/${p.id}`,
+      href: `/dashboard/patients/${p.id}`,
     });
   }
   for (const d of doctors) {
@@ -70,7 +70,7 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       id: d.id,
       title: `Dr. ${d.firstName} ${d.lastName}`,
       subtitle: d.specialization,
-      href: `/doctors/${d.id}`,
+      href: `/dashboard/doctors/${d.id}`,
     });
   }
   for (const dep of departments) {
@@ -79,7 +79,7 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       id: dep.id,
       title: dep.name,
       subtitle: `Floor ${dep.floor}`,
-      href: `/departments/${dep.id}`,
+      href: `/dashboard/departments/${dep.id}`,
     });
   }
   for (const r of rooms) {
@@ -88,7 +88,7 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       id: r.id,
       title: `Room ${r.roomNumber}`,
       subtitle: r.type,
-      href: `/rooms/${r.id}`,
+      href: `/dashboard/rooms/${r.id}`,
     });
   }
   for (const inv of invoices) {
@@ -97,7 +97,7 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       id: inv.id,
       title: inv.invoiceNumber,
       subtitle: `${inv.patient.firstName} ${inv.patient.lastName}`,
-      href: `/billing/${inv.id}`,
+      href: `/dashboard/billing/${inv.id}`,
     });
   }
 

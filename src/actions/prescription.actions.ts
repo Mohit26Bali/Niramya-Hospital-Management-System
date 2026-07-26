@@ -21,7 +21,7 @@ export async function createPrescriptionAction(input: PrescriptionInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/prescriptions");
+  revalidatePath("/dashboard/prescriptions");
 }
 
 export async function deletePrescriptionAction(id: string) {
@@ -31,5 +31,5 @@ export async function deletePrescriptionAction(id: string) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/prescriptions");
+  revalidatePath("/dashboard/prescriptions");
 }

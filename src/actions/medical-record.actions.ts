@@ -26,7 +26,7 @@ export async function createMedicalRecordAction(input: MedicalRecordInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/medical-records");
+  revalidatePath("/dashboard/medical-records");
 }
 
 export async function updateMedicalRecordAction(id: string, input: MedicalRecordInput) {
@@ -37,7 +37,7 @@ export async function updateMedicalRecordAction(id: string, input: MedicalRecord
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/medical-records");
+  revalidatePath("/dashboard/medical-records");
 }
 
 export async function updateMedicalRecordVitalsAction(id: string, input: VitalsInput) {
@@ -48,7 +48,7 @@ export async function updateMedicalRecordVitalsAction(id: string, input: VitalsI
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/medical-records");
+  revalidatePath("/dashboard/medical-records");
 }
 
 export async function deleteMedicalRecordAction(id: string) {
@@ -58,5 +58,5 @@ export async function deleteMedicalRecordAction(id: string) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/medical-records");
+  revalidatePath("/dashboard/medical-records");
 }

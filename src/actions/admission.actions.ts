@@ -27,8 +27,8 @@ export async function createAdmissionAction(input: AdmissionInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/admissions");
-  revalidatePath("/rooms");
+  revalidatePath("/dashboard/admissions");
+  revalidatePath("/dashboard/rooms");
 }
 
 export async function updateAdmissionAction(id: string, input: AdmissionInput) {
@@ -39,8 +39,8 @@ export async function updateAdmissionAction(id: string, input: AdmissionInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/admissions");
-  revalidatePath("/rooms");
+  revalidatePath("/dashboard/admissions");
+  revalidatePath("/dashboard/rooms");
 }
 
 export async function dischargeAdmissionAction(id: string, dischargeSummary?: string) {
@@ -53,8 +53,8 @@ export async function dischargeAdmissionAction(id: string, dischargeSummary?: st
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/admissions");
-  revalidatePath("/rooms");
+  revalidatePath("/dashboard/admissions");
+  revalidatePath("/dashboard/rooms");
 }
 
 export async function updateAdmissionStatusAction(id: string, status: AdmissionStatus) {
@@ -65,7 +65,7 @@ export async function updateAdmissionStatusAction(id: string, status: AdmissionS
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/admissions");
+  revalidatePath("/dashboard/admissions");
 }
 
 export async function deleteAdmissionAction(id: string) {
@@ -75,6 +75,6 @@ export async function deleteAdmissionAction(id: string) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/admissions");
-  revalidatePath("/rooms");
+  revalidatePath("/dashboard/admissions");
+  revalidatePath("/dashboard/rooms");
 }

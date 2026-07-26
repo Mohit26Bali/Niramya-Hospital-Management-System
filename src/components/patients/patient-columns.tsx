@@ -85,7 +85,7 @@ export const patientColumns: ColumnDef<Patient>[] = [
           </Avatar>
           <div className="flex flex-col">
             <Link
-              href={`/patients/${patient.id}`}
+              href={`/dashboard/patients/${patient.id}`}
               className="font-medium text-foreground hover:underline"
             >
               {fullName}

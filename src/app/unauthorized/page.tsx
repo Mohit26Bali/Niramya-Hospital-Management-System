@@ -13,7 +13,7 @@ export default function UnauthorizedPage() {
         You don&apos;t have permission to view this page. Contact an administrator if you believe this is a mistake.
       </p>
       <Button asChild>
-        <Link href="/">Back to dashboard</Link>
+        <Link href="/dashboard">Back to dashboard</Link>
       </Button>
     </div>
   );

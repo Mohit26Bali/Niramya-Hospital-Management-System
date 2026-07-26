@@ -69,7 +69,7 @@ export function PatientDetail({
   return (
     <div>
       <Link
-        href="/patients"
+        href="/dashboard/patients"
         className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="size-3.5" /> Back to patients
@@ -118,7 +118,7 @@ export function PatientDetail({
               onConfirm={async () => {
                 await deletePatientAction(patient.id);
                 toast.success("Patient deleted");
-                router.push("/patients");
+                router.push("/dashboard/patients");
               }}
             />
           ) : null}

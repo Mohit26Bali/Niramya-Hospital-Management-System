@@ -38,13 +38,13 @@ export function UserNav({ name, email, role }: { name: string; email: string; ro
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <Link href="/profile">
+          <Link href="/dashboard/profile">
             <UserIcon className="mr-2 size-4" /> Profile
           </Link>
         </DropdownMenuItem>
         {role === "ADMIN" ? (
           <DropdownMenuItem asChild>
-            <Link href="/settings">
+            <Link href="/dashboard/settings">
               <Settings className="mr-2 size-4" /> Settings
             </Link>
           </DropdownMenuItem>

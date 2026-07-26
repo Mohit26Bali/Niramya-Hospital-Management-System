@@ -20,7 +20,9 @@ function toLabel(segment: string) {
 
 export function Breadcrumbs() {
   const pathname = usePathname();
-  const segments = pathname.split("/").filter(Boolean);
+  const allSegments = pathname.split("/").filter(Boolean);
+  // Drop the leading "dashboard" segment — it's already represented by the root crumb below.
+  const segments = allSegments[0] === "dashboard" ? allSegments.slice(1) : allSegments;
 
   if (segments.length === 0) {
     return <p className="text-sm font-medium text-foreground">Dashboard</p>;
@@ -31,11 +33,11 @@ export function Breadcrumbs() {
       <BreadcrumbList>
         <BreadcrumbItem>
           <BreadcrumbLink asChild>
-            <Link href="/">Dashboard</Link>
+            <Link href="/dashboard">Dashboard</Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
         {segments.map((seg, i) => {
-          const href = "/" + segments.slice(0, i + 1).join("/");
+          const href = "/dashboard/" + segments.slice(0, i + 1).join("/");
           const isLast = i === segments.length - 1;
           return (
             <span key={href} className="contents">

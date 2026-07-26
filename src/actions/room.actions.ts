@@ -24,7 +24,7 @@ export async function createRoomAction(input: RoomInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/rooms");
+  revalidatePath("/dashboard/rooms");
 }
 
 export async function updateRoomAction(id: string, input: RoomInput) {
@@ -35,7 +35,7 @@ export async function updateRoomAction(id: string, input: RoomInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/rooms");
+  revalidatePath("/dashboard/rooms");
 }
 
 export async function deleteRoomAction(id: string) {
@@ -45,7 +45,7 @@ export async function deleteRoomAction(id: string) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/rooms");
+  revalidatePath("/dashboard/rooms");
 }
 
 export async function updateRoomStatusAction(id: string, status: RoomStatus) {
@@ -56,5 +56,5 @@ export async function updateRoomStatusAction(id: string, status: RoomStatus) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/rooms");
+  revalidatePath("/dashboard/rooms");
 }

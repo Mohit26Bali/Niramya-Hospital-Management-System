@@ -23,7 +23,7 @@ export async function createDepartmentAction(input: DepartmentInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/departments");
+  revalidatePath("/dashboard/departments");
 }
 
 export async function updateDepartmentAction(id: string, input: DepartmentInput) {
@@ -34,7 +34,7 @@ export async function updateDepartmentAction(id: string, input: DepartmentInput)
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/departments");
+  revalidatePath("/dashboard/departments");
 }
 
 export async function deleteDepartmentAction(id: string) {
@@ -44,5 +44,5 @@ export async function deleteDepartmentAction(id: string) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/departments");
+  revalidatePath("/dashboard/departments");
 }

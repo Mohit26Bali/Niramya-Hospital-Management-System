@@ -3,10 +3,10 @@ import { auth } from "@/lib/auth";
 import type { Role } from "@prisma/client";
 
 const ROUTE_ROLE_MAP: { prefix: string; roles: Role[] }[] = [
-  { prefix: "/billing", roles: ["ADMIN", "RECEPTIONIST"] },
-  { prefix: "/settings", roles: ["ADMIN"] },
-  { prefix: "/activity-log", roles: ["ADMIN"] },
-  { prefix: "/nurses", roles: ["ADMIN"] },
+  { prefix: "/dashboard/billing", roles: ["ADMIN", "RECEPTIONIST"] },
+  { prefix: "/dashboard/settings", roles: ["ADMIN"] },
+  { prefix: "/dashboard/activity-log", roles: ["ADMIN"] },
+  { prefix: "/dashboard/nurses", roles: ["ADMIN"] },
 ];
 
 export default auth((req) => {
@@ -14,7 +14,12 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
 
   if (pathname.startsWith("/login")) {
-    if (isLoggedIn) return NextResponse.redirect(new URL("/", req.nextUrl));
+    if (isLoggedIn) return NextResponse.redirect(new URL("/dashboard", req.nextUrl));
+    return NextResponse.next();
+  }
+
+  // Everything outside /dashboard is the public site — no session required.
+  if (!pathname.startsWith("/dashboard")) {
     return NextResponse.next();
   }
 

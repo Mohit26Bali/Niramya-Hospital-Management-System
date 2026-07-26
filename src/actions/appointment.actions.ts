@@ -34,7 +34,7 @@ export async function createAppointmentAction(input: AppointmentInput) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/appointments");
+  revalidatePath("/dashboard/appointments");
 }
 
 export async function updateAppointmentAction(id: string, input: AppointmentInput) {
@@ -45,7 +45,7 @@ export async function updateAppointmentAction(id: string, input: AppointmentInpu
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/appointments");
+  revalidatePath("/dashboard/appointments");
 }
 
 export async function cancelAppointmentAction(id: string) {
@@ -55,7 +55,7 @@ export async function cancelAppointmentAction(id: string) {
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/appointments");
+  revalidatePath("/dashboard/appointments");
 }
 
 export async function updateAppointmentStatusAction(id: string, status: AppointmentStatus) {
@@ -66,5 +66,5 @@ export async function updateAppointmentStatusAction(id: string, status: Appointm
     name: session.user.name ?? "Unknown",
     role: session.user.role,
   });
-  revalidatePath("/appointments");
+  revalidatePath("/dashboard/appointments");
 }

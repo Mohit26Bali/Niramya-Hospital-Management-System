@@ -25,7 +25,7 @@ function ActionsCell({ invoice, canDelete }: { invoice: InvoiceRow; canDelete: b
     <>
       <RowActions>
         <DropdownMenuItem asChild>
-          <Link href={`/billing/${invoice.id}`}>
+          <Link href={`/dashboard/billing/${invoice.id}`}>
             <Eye className="mr-2 size-3.5" /> View / Print
           </Link>
         </DropdownMenuItem>
@@ -72,7 +72,7 @@ export function buildInvoiceColumns(canDelete: boolean): ColumnDef<InvoiceRow>[]
       accessorKey: "invoiceNumber",
       header: () => <DataTableColumnHeader title="Invoice #" sortKey="invoiceNumber" />,
       cell: ({ row }) => (
-        <Link href={`/billing/${row.original.id}`} className="font-medium text-foreground hover:underline">
+        <Link href={`/dashboard/billing/${row.original.id}`} className="font-medium text-foreground hover:underline">
           {row.original.invoiceNumber}
         </Link>
       ),

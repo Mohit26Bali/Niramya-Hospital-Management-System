@@ -23,19 +23,19 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/patients", label: "Patients", icon: Users },
-  { href: "/doctors", label: "Doctors", icon: Stethoscope },
-  { href: "/nurses", label: "Nurses", icon: HeartPulse, roles: ["ADMIN"] },
-  { href: "/departments", label: "Departments", icon: Building },
-  { href: "/appointments", label: "Appointments", icon: Calendar },
-  { href: "/rooms", label: "Rooms", icon: BedDouble },
-  { href: "/admissions", label: "Admissions", icon: ClipboardList },
-  { href: "/medical-records", label: "Medical Records", icon: ClipboardList },
-  { href: "/prescriptions", label: "Prescriptions", icon: Pill },
-  { href: "/billing", label: "Billing", icon: Wallet, roles: ["ADMIN", "RECEPTIONIST"] },
-  { href: "/activity-log", label: "Activity Log", icon: History, roles: ["ADMIN"] },
-  { href: "/settings", label: "Settings", icon: Settings, roles: ["ADMIN"] },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard/patients", label: "Patients", icon: Users },
+  { href: "/dashboard/doctors", label: "Doctors", icon: Stethoscope },
+  { href: "/dashboard/nurses", label: "Nurses", icon: HeartPulse, roles: ["ADMIN"] },
+  { href: "/dashboard/departments", label: "Departments", icon: Building },
+  { href: "/dashboard/appointments", label: "Appointments", icon: Calendar },
+  { href: "/dashboard/rooms", label: "Rooms", icon: BedDouble },
+  { href: "/dashboard/admissions", label: "Admissions", icon: ClipboardList },
+  { href: "/dashboard/medical-records", label: "Medical Records", icon: ClipboardList },
+  { href: "/dashboard/prescriptions", label: "Prescriptions", icon: Pill },
+  { href: "/dashboard/billing", label: "Billing", icon: Wallet, roles: ["ADMIN", "RECEPTIONIST"] },
+  { href: "/dashboard/activity-log", label: "Activity Log", icon: History, roles: ["ADMIN"] },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings, roles: ["ADMIN"] },
 ];
 
 export function visibleNavItems(role: Role): NavItem[] {
