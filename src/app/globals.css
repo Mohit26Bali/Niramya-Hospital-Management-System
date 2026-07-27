@@ -102,6 +102,49 @@
   --sidebar-ring: #3b82f6;
 }
 
+/* Public marketing site palette — deliberately distinct from the staff dashboard
+   (calm teal/emerald vs. the dashboard's professional royal blue). Scope this
+   class on the (public) route group's root element; because shadcn/ui components
+   reference var(--primary) etc. at usage time, everything nested under `.public`
+   (buttons, links, focus rings, badges) picks this up automatically with no
+   per-component changes. Charts are NOT overridden here — they keep the
+   dashboard's validated --chart-1/2/3 categorical palette everywhere. */
+.public {
+  --primary: #0f766e;
+  --primary-foreground: #ffffff;
+  --secondary: #f8fafc;
+  --secondary-foreground: #111827;
+  --muted: #f8fafc;
+  --muted-foreground: #475569;
+  --accent: #f0fdfa;
+  --accent-foreground: #0f766e;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0f766e;
+  --background: #ffffff;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
+}
+
+.dark .public {
+  --primary: #14b8a6;
+  --primary-foreground: #062e2b;
+  --secondary: #111827;
+  --secondary-foreground: #f1f5f9;
+  --muted: #111827;
+  --muted-foreground: #94a3b8;
+  --accent: #0f2e2b;
+  --accent-foreground: #5eead4;
+  --border: #1f2937;
+  --input: #1f2937;
+  --ring: #14b8a6;
+  --background: #0b1210;
+  --foreground: #f1f5f9;
+  --card: #111827;
+  --card-foreground: #f1f5f9;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
