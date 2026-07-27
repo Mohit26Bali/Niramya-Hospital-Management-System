@@ -2,7 +2,12 @@
 
 _Compassion. Care. Excellence._
 
-A full-stack hospital management system built as a college project: role-based staff portal for admins, doctors, nurses, and receptionists to manage patients, doctors, nurses, departments, appointments, admissions, rooms, medical records, prescriptions, and billing.
+A full-stack hospital system built as a college project, in two parts sharing one database:
+
+- **Public website** (`/`, `/about`, `/doctors`, `/departments`, `/services`, `/health-packages`, `/gallery`, `/blog`, `/contact`, `/emergency`, `/appointments`) — a patient-facing marketing site with a live doctor/department directory and a real appointment-booking form.
+- **Staff portal** (`/dashboard/*`, behind login at `/login`) — role-based internal system for admins, doctors, nurses, and receptionists to manage patients, doctors, nurses, departments, appointments, admissions, rooms, medical records, prescriptions, and billing.
+
+A booking submitted on the public site creates a real `Appointment` (and `Patient`, if new) that receptionists see immediately in the staff portal — no duplicate tables, the public site reuses the same services as the internal forms.
 
 ## Tech stack
 
@@ -20,15 +25,18 @@ A full-stack hospital management system built as a college project: role-based s
 ```
 src/
   app/                    Next.js App Router routes
+    (public)/              Public marketing site — no URL segment added, routes live at /, /about, /doctors, …
     (auth)/login/         Public split-screen login page
-    (dashboard)/          Authenticated shell (sidebar + header) — one folder per entity
+    dashboard/             Authenticated staff portal (sidebar + header) — routes live at /dashboard/*
     api/                  Auth.js route handler + global search endpoint
   components/
     ui/                   shadcn/ui primitives
-    shared/                Reusable DataTable, FormDialog, ConfirmDialog, StatCard, StatusBadge, etc.
-    layout/                Sidebar, header, global search, notifications, theme toggle
+    shared/                Reusable DataTable, FormDialog, ConfirmDialog, StatCard, StatusBadge, etc. (staff portal)
+    layout/                Sidebar, header, global search, notifications, theme toggle (staff portal)
+    public/                Public site nav/footer/sections (doctors, home, booking, etc.)
     charts/                Recharts wrappers used on the dashboard
-    <entity>/              Per-entity form, columns, table/view components
+    <entity>/              Per-entity form, columns, table/view components (staff portal)
+  content/                Static marketing content (blog posts, testimonials, health packages, gallery) — no DB tables, nothing here is admin-editable
   actions/                "use server" Server Actions — thin wrappers: permission check → Zod parse → service call → revalidatePath
   server/services/        All business logic and Prisma queries live here, not in actions or components
   lib/                    Prisma client singleton, Auth.js config, permissions matrix, pagination helpers, formatting utils
@@ -107,11 +115,11 @@ This wipes and reseeds ~1,400 rows: 8 departments, 12 doctors, 25 nurses, 150 pa
 pnpm dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000).
+Visit [http://localhost:3000](http://localhost:3000) for the public site, or go straight to [http://localhost:3000/login](http://localhost:3000/login) for the staff portal.
 
 ### Demo accounts
 
-All seeded with password `password123`:
+Staff portal login, all seeded with password `password123`:
 
 | Email | Role |
 |---|---|
@@ -153,7 +161,12 @@ Soft deletes (`isActive` / `deletedAt`) are used for master data that hospitals 
 
 ## Design system
 
-White/light-gray surfaces, medical blue (`#2563EB`) primary accent, emerald (`#10B981`) secondary, slate (`#0F172A`) sidebar — no gradients, no glassmorphism, subtle 150–200ms transitions only. Dark mode is fully themed via `next-themes` and CSS custom properties (`src/app/globals.css`).
+Two deliberately distinct palettes, both implemented as CSS custom properties in `src/app/globals.css` so shadcn/ui components pick them up automatically with no per-component overrides:
+
+- **Staff portal**: white/light-gray surfaces, medical blue (`#2563EB`) primary accent, emerald (`#10B981`) secondary, slate (`#0F172A`) sidebar — professional, information-dense.
+- **Public site**: a `.public` class (applied once at `src/app/(public)/layout.tsx`) overrides the same tokens to a calmer deep teal (`#0F766E`) primary + emerald secondary — welcoming, premium. Dashboard charts keep the original blue/emerald/amber categorical palette everywhere regardless of which site they're used on.
+
+No gradients, no glassmorphism, subtle 150–200ms transitions only. Dark mode is fully themed via `next-themes` for both palettes.
 
 ## Future scope
 
