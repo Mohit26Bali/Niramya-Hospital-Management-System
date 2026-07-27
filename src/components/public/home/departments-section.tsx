@@ -41,7 +41,7 @@ export function DepartmentsSection({ departments }: { departments: Department[] 
             const Icon = DEPARTMENT_ICONS[dept.name] ?? Stethoscope;
             return (
               <Link key={dept.id} href="/departments">
-                <Card className="h-full transition-shadow hover:shadow-md">
+                <Card className="h-full border-border shadow-none transition-shadow duration-150 hover:shadow-sm">
                   <CardContent className="flex flex-col gap-3">
                     <div className="flex size-11 items-center justify-center rounded-lg bg-accent text-primary">
                       <Icon className="size-5" />

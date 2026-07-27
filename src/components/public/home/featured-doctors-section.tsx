@@ -22,29 +22,31 @@ export function FeaturedDoctorsSection({ doctors }: { doctors: DoctorWithDepartm
         />
         <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {doctors.map((doctor) => (
-            <Card key={doctor.id} className="h-full">
-              <CardContent className="flex flex-col items-center gap-3 text-center">
-                <Image
-                  src={doctorAvatarUrl(doctor.employeeCode)}
-                  alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
-                  width={72}
-                  height={72}
-                  className="rounded-full border border-border"
-                  unoptimized
-                />
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">
-                    Dr. {doctor.firstName} {doctor.lastName}
-                  </h3>
-                  <p className="text-sm text-primary">{doctor.specialization}</p>
-                  <p className="text-xs text-muted-foreground">{doctor.department.name}</p>
-                </div>
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <GraduationCap className="size-3.5" />
-                  {doctor.yearsExperience}+ years experience
-                </div>
-              </CardContent>
-            </Card>
+            <Link key={doctor.id} href={`/doctors/${doctor.id}`} className="group block h-full">
+              <Card className="h-full border-border shadow-none transition-shadow duration-150 group-hover:shadow-sm">
+                <CardContent className="flex flex-col items-center gap-3 text-center">
+                  <Image
+                    src={doctorAvatarUrl(doctor.employeeCode)}
+                    alt={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+                    width={72}
+                    height={72}
+                    className="rounded-full border border-border"
+                    unoptimized
+                  />
+                  <div>
+                    <h3 className="text-base font-semibold text-foreground group-hover:text-primary">
+                      Dr. {doctor.firstName} {doctor.lastName}
+                    </h3>
+                    <p className="text-sm text-primary">{doctor.specialization}</p>
+                    <p className="text-xs text-muted-foreground">{doctor.department.name}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <GraduationCap className="size-3.5" />
+                    {doctor.yearsExperience}+ years experience
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
         <div className="mt-10 flex justify-center">
