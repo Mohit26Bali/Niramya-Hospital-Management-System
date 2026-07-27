@@ -50,25 +50,38 @@ export default async function AboutPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
-        <SectionHeading eyebrow="Our Story" title="A Journey of Care" />
-        <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
-          <p>
-            Niramaya Hospital was founded with a simple belief: that quality healthcare should be
-            both advanced and deeply personal. What began as a modest 50-bed facility has grown
-            into a comprehensive multi-specialty hospital serving thousands of families across the
-            region.
-          </p>
-          <p>
-            Over the years, we have invested continuously in specialist talent, modern diagnostic
-            equipment, and patient-centered processes — all while holding on to the core value
-            that brought us here: treating every patient like family.
-          </p>
-          <p>
-            Today, Niramaya is home to expert teams across cardiology, neurology, orthopedics,
-            pediatrics, and more, supported by a 24×7 emergency department and a state-of-the-art
-            infrastructure built for both routine and critical care.
-          </p>
+      <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2 lg:gap-16">
+          <div>
+            <SectionHeading eyebrow="Our Story" title="A Journey of Care" />
+            <div className="mt-6 flex flex-col gap-4 text-sm leading-relaxed text-muted-foreground sm:text-base">
+              <p>
+                Niramaya Hospital was founded with a simple belief: that quality healthcare should
+                be both advanced and deeply personal. What began as a modest 50-bed facility has
+                grown into a comprehensive multi-specialty hospital serving thousands of families
+                across the region.
+              </p>
+              <p>
+                Over the years, we have invested continuously in specialist talent, modern
+                diagnostic equipment, and patient-centered processes — all while holding on to the
+                core value that brought us here: treating every patient like family.
+              </p>
+              <p>
+                Today, Niramaya is home to expert teams across cardiology, neurology, orthopedics,
+                pediatrics, and more, supported by a 24×7 emergency department and a
+                state-of-the-art infrastructure built for both routine and critical care.
+              </p>
+            </div>
+          </div>
+          <div className="relative aspect-4/3 w-full overflow-hidden rounded-2xl">
+            <Image
+              src="/team.png"
+              alt="Niramaya doctors, nurses, and staff in a hospital corridor"
+              fill
+              sizes="(min-width: 1024px) 50vw, 100vw"
+              className="object-cover"
+            />
+          </div>
         </div>
       </section>
 
