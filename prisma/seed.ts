@@ -121,6 +121,7 @@ async function main() {
   console.log("Wiping existing data...");
   await prisma.$transaction([
     prisma.auditLog.deleteMany(),
+    prisma.doctorReview.deleteMany(),
     prisma.invoiceItem.deleteMany(),
     prisma.invoice.deleteMany(),
     prisma.prescriptionItem.deleteMany(),
@@ -177,6 +178,16 @@ async function main() {
   await prisma.user.create({
     data: { name: "Reception Desk", email: "reception@hospital.com", passwordHash, role: Role.RECEPTIONIST },
   });
+  // System actor used to attribute audit-log entries for bookings submitted through the public website.
+  await prisma.user.create({
+    data: {
+      name: "Public Website",
+      email: "website@niramaya.internal",
+      passwordHash,
+      role: Role.RECEPTIONIST,
+      isActive: false,
+    },
+  });
 
   type DoctorRec = { id: string; departmentId: string; consultationFee: number };
   type NurseRec = { id: string; departmentId: string | null };
@@ -206,6 +217,9 @@ async function main() {
       },
     });
     const consultationFee = randInt(500, 2500);
+    const qualification = pick(QUALIFICATIONS);
+    const yearsExperience = randInt(2, 30);
+    const bio = `Dr. ${opts.firstName} ${opts.lastName} is a ${specialization} specialist with ${yearsExperience} years of experience, holding ${qualification}. Dedicated to providing compassionate, evidence-based care to every patient at Niramaya.`;
     const doctor = await prisma.doctor.create({
       data: {
         userId: user.id,
@@ -216,10 +230,11 @@ async function main() {
         gender: opts.gender,
         specialization,
         phone: randomIndianPhone(),
-        qualification: pick(QUALIFICATIONS),
-        yearsExperience: randInt(2, 30),
+        qualification,
+        yearsExperience,
         consultationFee,
         isAvailable: Math.random() < 0.85,
+        bio,
       },
     });
     doctors.push({ id: doctor.id, departmentId: dept.id, consultationFee });
@@ -288,6 +303,42 @@ async function main() {
     const { firstName, lastName } = fullName(gender);
     const email = uniqueEmail(firstName, lastName);
     await createDoctor({ email, firstName, lastName, gender, departmentName: deptName });
+  }
+
+  // ── Doctor reviews (public site) ────────────────────────────────────
+  console.log("Seeding doctor reviews...");
+  const REVIEW_COMMENTS = [
+    "Extremely attentive and explained everything clearly. Highly recommend.",
+    "Very professional and caring. The consultation was thorough and reassuring.",
+    "Great experience overall. Short wait time and excellent bedside manner.",
+    "Diagnosed my condition accurately and the treatment worked well.",
+    "Patient and kind, answered all my questions without rushing.",
+    "One of the best doctors I've consulted. Truly compassionate care.",
+    "Follow-up care was excellent, always available for questions.",
+    "Very knowledgeable and up to date with the latest treatments.",
+  ];
+  for (const doc of doctors) {
+    const reviewCount = randInt(3, 6);
+    const reviewers = sample(
+      [...INDIAN_MALE_FIRST_NAMES, ...INDIAN_FEMALE_FIRST_NAMES],
+      reviewCount
+    );
+    for (const reviewerFirst of reviewers) {
+      await prisma.doctorReview.create({
+        data: {
+          doctorId: doc.id,
+          patientName: `${reviewerFirst} ${pick(INDIAN_LAST_NAMES)}`,
+          rating: pickWeighted([
+            { value: 5, weight: 55 },
+            { value: 4, weight: 30 },
+            { value: 3, weight: 10 },
+            { value: 2, weight: 5 },
+          ]),
+          comment: pick(REVIEW_COMMENTS),
+          createdAt: daysAgo(randInt(1, 365)),
+        },
+      });
+    }
   }
 
   // ── 24 more nurses ───────────────────────────────────────────────────
@@ -917,6 +968,7 @@ async function main() {
     Department: await prisma.department.count(),
     User: await prisma.user.count(),
     Doctor: await prisma.doctor.count(),
+    DoctorReview: await prisma.doctorReview.count(),
     Nurse: await prisma.nurse.count(),
     Patient: await prisma.patient.count(),
     Room: await prisma.room.count(),
