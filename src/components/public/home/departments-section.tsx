@@ -27,7 +27,7 @@ const DEPARTMENT_ICONS: Record<string, LucideIcon> = {
 
 export function DepartmentsSection({ departments }: { departments: Department[] }) {
   return (
-    <section className="bg-background">
+    <section id="departments" className="scroll-mt-16 bg-background">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <SectionHeading
           eyebrow="What We Treat"

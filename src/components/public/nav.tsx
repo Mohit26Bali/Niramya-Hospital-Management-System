@@ -14,10 +14,9 @@ const EMERGENCY_NUMBER = "+91 80 4567 8900";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About" },
-  { href: "/departments", label: "Departments" },
   { href: "/doctors", label: "Doctors" },
+  { href: "/departments", label: "Departments" },
   { href: "/services", label: "Services" },
-  { href: "/health-packages", label: "Health Packages" },
   { href: "/contact", label: "Contact" },
 ];
 
@@ -49,8 +48,8 @@ export function PublicNav() {
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex shrink-0 items-center gap-2.5">
-          <Image src="/logo.png" alt="Niramaya" width={32} height={32} className="rounded-lg" />
-          <span className="text-lg font-semibold text-foreground">Niramaya</span>
+          <Image src="/logo.png" alt="Niramaya" width={42} height={42} className="rounded-lg" />
+          <span className="text-xl font-bold text-foreground">Niramaya</span>
         </Link>
 
         <nav className="hidden items-center gap-6 lg:flex">
@@ -74,9 +73,9 @@ export function PublicNav() {
         <div className="hidden items-center gap-3 lg:flex">
           <a
             href={`tel:${EMERGENCY_NUMBER.replace(/\s+/g, "")}`}
-            className="flex items-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-1.5 text-xs font-semibold text-destructive"
+            className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-background px-3 py-1.5 text-xs font-semibold text-destructive transition-colors hover:bg-accent"
           >
-            <Phone className="size-3.5" />
+            <Phone className="size-3.5 text-destructive" />
             {EMERGENCY_NUMBER}
           </a>
           <Link
@@ -147,9 +146,9 @@ export function PublicNav() {
               <div className="mt-auto border-t border-border p-4">
                 <a
                   href={`tel:${EMERGENCY_NUMBER.replace(/\s+/g, "")}`}
-                  className="flex items-center justify-center gap-1.5 rounded-full border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive"
+                  className="flex items-center justify-center gap-1.5 rounded-full border border-primary/30 bg-background px-3 py-2 text-xs font-semibold text-destructive"
                 >
-                  <Phone className="size-3.5" />
+                  <Phone className="size-3.5 text-destructive" />
                   Emergency: {EMERGENCY_NUMBER}
                 </a>
               </div>

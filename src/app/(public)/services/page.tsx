@@ -13,6 +13,7 @@ import {
   Ambulance,
   ClipboardCheck,
 } from "lucide-react";
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 
 type Service = {
@@ -99,17 +100,32 @@ export default function ServicesPage() {
       </div>
 
       <div className="mt-12 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {SERVICES.map((service) => (
-          <Card key={service.name} className="border-border shadow-none transition-shadow duration-150 hover:shadow-sm">
-            <CardContent className="p-6">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-accent">
-                <service.icon className="size-5 text-primary" />
-              </div>
-              <h2 className="mt-4 text-base font-semibold text-foreground">{service.name}</h2>
-              <p className="mt-1.5 text-sm text-muted-foreground">{service.description}</p>
-            </CardContent>
-          </Card>
-        ))}
+        {SERVICES.map((service) => {
+          const isPackages = service.name === "Health Checkup Packages";
+          const card = (
+            <Card
+              className={`h-full border-border shadow-none transition-shadow duration-150 hover:shadow-sm ${isPackages ? "hover:border-primary/40" : ""}`}
+            >
+              <CardContent className="p-6">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-accent">
+                  <service.icon className="size-5 text-primary" />
+                </div>
+                <h2 className="mt-4 text-base font-semibold text-foreground">{service.name}</h2>
+                <p className="mt-1.5 text-sm text-muted-foreground">{service.description}</p>
+                {isPackages ? (
+                  <p className="mt-2 text-sm font-medium text-primary">View packages →</p>
+                ) : null}
+              </CardContent>
+            </Card>
+          );
+          return isPackages ? (
+            <Link key={service.name} href="/health-packages">
+              {card}
+            </Link>
+          ) : (
+            <div key={service.name}>{card}</div>
+          );
+        })}
       </div>
     </div>
   );
