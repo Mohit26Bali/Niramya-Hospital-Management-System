@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { buildPaginatedResult, toSkipTake, type PaginationParams } from "@/lib/pagination";
 import type { InvoiceInput, RecordPaymentInput } from "@/schemas/invoice.schema";
 import { recordAudit } from "@/server/services/audit.service";
-import { generateSequenceNumber } from "@/lib/utils";
+import { nextNumber } from "@/lib/sequence";
+import { UserError } from "@/lib/action-result";
 import type { Role } from "@prisma/client";
 
 type Actor = { id: string; name: string; role: Role };
@@ -49,24 +50,32 @@ export async function getInvoiceById(id: string) {
   });
 }
 
+/** Money is added up in whole paise (integers). Adding rupee floats gives totals such as 100.30000000000001. */
+const toPaise = (rupees: number) => Math.round(rupees * 100);
+const toRupees = (paise: number) => paise / 100;
+
 export async function createInvoice(input: InvoiceInput, actor: Actor) {
-  const count = await prisma.invoice.count();
-  const invoiceNumber = generateSequenceNumber("INV", count + 1);
+  const patient = await prisma.patient.findUnique({ where: { id: input.patientId }, select: { isActive: true } });
+  if (!patient || !patient.isActive) throw new UserError("That patient could not be found.");
 
   const itemsWithTotals = input.items.map((item) => ({
     description: item.description,
     category: item.category,
     quantity: item.quantity,
     unitPrice: item.unitPrice,
-    total: item.quantity * item.unitPrice,
+    total: toRupees(item.quantity * toPaise(item.unitPrice)),
   }));
 
-  const subtotal = itemsWithTotals.reduce((sum, item) => sum + item.total, 0);
-  const totalAmount = subtotal + input.tax - input.discount;
+  const subtotalPaise = input.items.reduce((sum, item) => sum + item.quantity * toPaise(item.unitPrice), 0);
+  const totalPaise = subtotalPaise + toPaise(input.tax) - toPaise(input.discount);
+  if (totalPaise < 0) throw new UserError("The discount cannot be larger than the bill (items plus tax).");
+  if (totalPaise > 9_999_999_99) throw new UserError("That amount is too large for one invoice.");
+  const subtotal = toRupees(subtotalPaise);
+  const totalAmount = toRupees(totalPaise);
 
   const invoice = await prisma.invoice.create({
     data: {
-      invoiceNumber,
+      invoiceNumber: await nextNumber("INV"),
       patientId: input.patientId,
       subtotal,
       tax: input.tax,
@@ -92,18 +101,31 @@ export async function createInvoice(input: InvoiceInput, actor: Actor) {
   return invoice;
 }
 
+/** paidAmount is the TOTAL received so far. It may only go up, and never above the amount due. */
 export async function recordPayment(id: string, input: RecordPaymentInput, actor: Actor) {
-  const existing = await prisma.invoice.findUniqueOrThrow({ where: { id } });
-  const isFullyPaid = input.paidAmount >= Number(existing.totalAmount);
+  const invoice = await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${"invoice:" + id}))`;
+    const existing = await tx.invoice.findUnique({ where: { id } });
+    if (!existing) throw new UserError("That invoice no longer exists.");
+    if (existing.status === "CANCELLED") throw new UserError("A cancelled invoice cannot take payments.");
 
-  const invoice = await prisma.invoice.update({
-    where: { id },
-    data: {
-      paidAmount: input.paidAmount,
-      paymentMethod: input.paymentMethod,
-      status: isFullyPaid ? "PAID" : "PARTIALLY_PAID",
-      paidAt: isFullyPaid ? new Date() : null,
-    },
+    const total = toPaise(Number(existing.totalAmount));
+    const before = toPaise(Number(existing.paidAmount));
+    const now = toPaise(input.paidAmount);
+    if (now > total) throw new UserError("The amount paid cannot be more than the amount due.");
+    if (now < before) throw new UserError("The total paid cannot go down. Payments already recorded stay recorded.");
+    if (now === before) throw new UserError("No new payment to record.");
+
+    const fullyPaid = now >= total;
+    return tx.invoice.update({
+      where: { id },
+      data: {
+        paidAmount: toRupees(now),
+        paymentMethod: input.paymentMethod,
+        status: fullyPaid ? "PAID" : "PARTIALLY_PAID",
+        paidAt: fullyPaid ? new Date() : null,
+      },
+    });
   });
 
   await recordAudit({
@@ -120,6 +142,10 @@ export async function recordPayment(id: string, input: RecordPaymentInput, actor
 }
 
 export async function deleteInvoice(id: string, actor: Actor) {
+  const existing = await prisma.invoice.findUnique({ where: { id } });
+  if (!existing) throw new UserError("That invoice no longer exists.");
+  // A bill that took money is a financial record: it is not erased.
+  if (Number(existing.paidAmount) > 0) throw new UserError("This invoice has payments recorded, so it cannot be deleted.");
   const invoice = await prisma.invoice.delete({ where: { id } });
 
   await recordAudit({

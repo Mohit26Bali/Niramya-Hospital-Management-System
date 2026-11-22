@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -80,10 +81,10 @@ export function AdmissionForm({
     startTransition(async () => {
       try {
         if (admission) {
-          await updateAdmissionAction(admission.id, parsed);
+          unwrap(await updateAdmissionAction(admission.id, parsed));
           toast.success("Admission updated");
         } else {
-          await createAdmissionAction(parsed);
+          unwrap(await createAdmissionAction(parsed));
           toast.success("Patient admitted");
         }
         onSuccess();

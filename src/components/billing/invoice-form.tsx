@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useEffect, useState, useTransition } from "react";
 import { useFieldArray, useForm, useWatch, type Control } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -114,7 +115,7 @@ export function InvoiceForm({ onSuccess }: { onSuccess: () => void }) {
     const parsed = invoiceSchema.parse(values);
     startTransition(async () => {
       try {
-        await createInvoiceAction(parsed);
+        unwrap(await createInvoiceAction(parsed));
         toast.success("Invoice created");
         onSuccess();
       } catch (error) {

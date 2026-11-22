@@ -13,6 +13,7 @@ import {
   Wallet,
   Settings,
   History,
+  Mail,
 } from "lucide-react";
 
 export type NavItem = {
@@ -31,9 +32,10 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/appointments", label: "Appointments", icon: Calendar },
   { href: "/dashboard/rooms", label: "Rooms", icon: BedDouble },
   { href: "/dashboard/admissions", label: "Admissions", icon: ClipboardList },
-  { href: "/dashboard/medical-records", label: "Medical Records", icon: ClipboardList },
-  { href: "/dashboard/prescriptions", label: "Prescriptions", icon: Pill },
+  { href: "/dashboard/medical-records", label: "Medical Records", icon: ClipboardList, roles: ["ADMIN", "DOCTOR", "NURSE"] },
+  { href: "/dashboard/prescriptions", label: "Prescriptions", icon: Pill, roles: ["ADMIN", "DOCTOR", "NURSE"] },
   { href: "/dashboard/billing", label: "Billing", icon: Wallet, roles: ["ADMIN", "RECEPTIONIST"] },
+  { href: "/dashboard/messages", label: "Messages", icon: Mail, roles: ["ADMIN", "RECEPTIONIST"] },
   { href: "/dashboard/activity-log", label: "Activity Log", icon: History, roles: ["ADMIN"] },
   { href: "/dashboard/settings", label: "Settings", icon: Settings, roles: ["ADMIN"] },
 ];

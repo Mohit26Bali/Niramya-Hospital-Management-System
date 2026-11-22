@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Pencil, LogOut, ArrowRightLeft, Trash2 } from "lucide-react";
@@ -40,7 +41,7 @@ function ActionsCell({ admission, canDelete }: { admission: AdmissionRow; canDel
           <DropdownMenuItem
             onSelect={async () => {
               try {
-                await updateAdmissionStatusAction(admission.id, "TRANSFERRED");
+                unwrap(await updateAdmissionStatusAction(admission.id, "TRANSFERRED"));
                 toast.success("Admission marked as transferred");
               } catch (error) {
                 toast.error(error instanceof Error ? error.message : "Something went wrong");
@@ -62,7 +63,7 @@ function ActionsCell({ admission, canDelete }: { admission: AdmissionRow; canDel
             confirmLabel="Discharge"
             variant="default"
             onConfirm={async () => {
-              await dischargeAdmissionAction(admission.id);
+              unwrap(await dischargeAdmissionAction(admission.id));
               toast.success("Patient discharged");
             }}
           />

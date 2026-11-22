@@ -1,8 +1,7 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { can } from "@/lib/permissions";
-import { prisma } from "@/lib/prisma";
-import { getPatientAction } from "@/actions/patient.actions";
+import { can, requirePermission } from "@/lib/permissions";
+import { getPatientChart } from "@/server/services/patient.service";
 import { PatientDetail } from "@/components/patients/patient-detail";
 
 export default async function PatientDetailPage({
@@ -11,48 +10,32 @@ export default async function PatientDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [session, patient] = await Promise.all([auth(), getPatientAction(id)]);
+  const session = await auth();
+  if (!session?.user) redirect("/login");
 
-  if (!patient) notFound();
+  // Re-checks the account and role in the database, then loads only what this role may see.
+  const live = await requirePermission("patient", "read");
+  const role = live.user.role;
 
-  const [appointments, medicalRecords, prescriptions, admissions, invoices] = await Promise.all([
-    prisma.appointment.findMany({
-      where: { patientId: id },
-      include: { doctor: true, department: true },
-      orderBy: { scheduledAt: "desc" },
-    }),
-    prisma.medicalRecord.findMany({
-      where: { patientId: id },
-      include: { doctor: true },
-      orderBy: { visitDate: "desc" },
-    }),
-    prisma.prescription.findMany({
-      where: { patientId: id },
-      include: { doctor: true, items: true },
-      orderBy: { issuedAt: "desc" },
-    }),
-    prisma.admission.findMany({
-      where: { patientId: id },
-      include: { doctor: true, room: true },
-      orderBy: { admittedAt: "desc" },
-    }),
-    prisma.invoice.findMany({
-      where: { patientId: id },
-      include: { items: true },
-      orderBy: { issuedAt: "desc" },
-    }),
-  ]);
+  const chart = await getPatientChart(
+    id,
+    { clinical: can(role, "medicalRecord", "read"), billing: can(role, "billing", "read") },
+    { id: live.user.id, name: live.user.name ?? "Unknown", role }
+  );
+  if (!chart) notFound();
 
   return (
     <PatientDetail
-      patient={patient}
-      canUpdate={can(session?.user.role, "patient", "update")}
-      canDelete={can(session?.user.role, "patient", "delete")}
-      appointments={JSON.parse(JSON.stringify(appointments))}
-      medicalRecords={JSON.parse(JSON.stringify(medicalRecords))}
-      prescriptions={JSON.parse(JSON.stringify(prescriptions))}
-      admissions={JSON.parse(JSON.stringify(admissions))}
-      invoices={JSON.parse(JSON.stringify(invoices))}
+      patient={chart.patient}
+      canUpdate={can(role, "patient", "update")}
+      canDelete={can(role, "patient", "delete")}
+      appointments={JSON.parse(JSON.stringify(chart.appointments))}
+      medicalRecords={JSON.parse(JSON.stringify(chart.medicalRecords))}
+      prescriptions={JSON.parse(JSON.stringify(chart.prescriptions))}
+      admissions={JSON.parse(JSON.stringify(chart.admissions))}
+      invoices={JSON.parse(JSON.stringify(chart.invoices))}
+      showClinical={can(role, "medicalRecord", "read")}
+      showBilling={can(role, "billing", "read")}
     />
   );
 }

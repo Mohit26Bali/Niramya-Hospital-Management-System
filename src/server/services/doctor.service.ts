@@ -1,5 +1,6 @@
 import "server-only";
-import bcrypt from "bcryptjs";
+import { generateTempPassword, hashPassword } from "@/lib/password";
+import { nextNumber } from "@/lib/sequence";
 import { prisma } from "@/lib/prisma";
 import { buildPaginatedResult, toSkipTake, type PaginationParams } from "@/lib/pagination";
 import type { DoctorInput, DoctorCreateInput } from "@/schemas/doctor.schema";
@@ -8,7 +9,6 @@ import type { Role } from "@prisma/client";
 
 type Actor = { id: string; name: string; role: Role };
 
-const DEFAULT_PASSWORD = "password123";
 
 export async function listDoctors(params: PaginationParams) {
   const where = {
@@ -46,23 +46,22 @@ export async function listAllActiveDoctors() {
   return doctors.map((d) => ({ ...d, consultationFee: Number(d.consultationFee) }));
 }
 
-async function generateEmployeeCode() {
-  const count = await prisma.doctor.count();
-  return `DOC-${String(count + 1).padStart(5, "0")}`;
-}
 
 export async function createDoctor(input: DoctorCreateInput, actor: Actor) {
   const { email, ...doctorFields } = input;
-  const employeeCode = await generateEmployeeCode();
-  const passwordHash = bcrypt.hashSync(DEFAULT_PASSWORD, 10);
+  const employeeCode = await nextNumber("DOC");
+  // A random temporary password, shown once to the admin. The doctor must replace it at first sign-in.
+  const tempPassword = generateTempPassword();
+  const passwordHash = hashPassword(tempPassword);
 
   const doctor = await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
       data: {
         name: `${doctorFields.firstName} ${doctorFields.lastName}`,
-        email,
+        email: email.trim().toLowerCase(),
         passwordHash,
         role: "DOCTOR",
+        mustChangePassword: true,
       },
     });
 
@@ -94,7 +93,7 @@ export async function createDoctor(input: DoctorCreateInput, actor: Actor) {
     details: { name: `${doctor.firstName} ${doctor.lastName}` },
   });
 
-  return doctor;
+  return { doctor, tempPassword };
 }
 
 export async function updateDoctor(id: string, input: DoctorInput, actor: Actor) {
@@ -137,9 +136,22 @@ export async function updateDoctor(id: string, input: DoctorInput, actor: Actor)
 }
 
 export async function softDeleteDoctor(id: string, actor: Actor) {
-  const doctor = await prisma.doctor.update({
-    where: { id },
-    data: { isActive: false, deletedAt: new Date() },
+  // Someone with patients waiting cannot just disappear: finish or reassign the work first.
+  const [upcoming, open] = await Promise.all([
+    prisma.appointment.count({ where: { doctorId: id, status: { in: ["SCHEDULED", "CONFIRMED"] }, scheduledAt: { gte: new Date() } } }),
+    prisma.admission.count({ where: { doctorId: id, status: "ADMITTED" } }),
+  ]);
+  if (upcoming > 0 || open > 0) {
+    throw new Error(
+      `This doctor still has ${upcoming} upcoming appointment(s) and ${open} admitted patient(s). Reschedule or hand them over first.`
+    );
+  }
+
+  // Removing a doctor must also end their LOGIN. Before, only the staff record was hidden and the account kept working.
+  const doctor = await prisma.$transaction(async (tx) => {
+    const d = await tx.doctor.update({ where: { id }, data: { isActive: false, deletedAt: new Date(), isAvailable: false } });
+    await tx.user.update({ where: { id: d.userId }, data: { isActive: false } });
+    return d;
   });
 
   await recordAudit({

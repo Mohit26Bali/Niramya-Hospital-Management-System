@@ -4,6 +4,10 @@ import type { Role } from "@prisma/client";
 
 const ROUTE_ROLE_MAP: { prefix: string; roles: Role[] }[] = [
   { prefix: "/dashboard/billing", roles: ["ADMIN", "RECEPTIONIST"] },
+  { prefix: "/dashboard/messages", roles: ["ADMIN", "RECEPTIONIST"] },
+  // Clinical notes and prescriptions are not for the front desk.
+  { prefix: "/dashboard/medical-records", roles: ["ADMIN", "DOCTOR", "NURSE"] },
+  { prefix: "/dashboard/prescriptions", roles: ["ADMIN", "DOCTOR", "NURSE"] },
   { prefix: "/dashboard/settings", roles: ["ADMIN"] },
   { prefix: "/dashboard/activity-log", roles: ["ADMIN"] },
   { prefix: "/dashboard/nurses", roles: ["ADMIN"] },
@@ -27,6 +31,11 @@ export default auth((req) => {
     const loginUrl = new URL("/login", req.nextUrl);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // An account created with a temporary password can do nothing until its owner has chosen their own.
+  if (req.auth!.user.mustChangePassword && !pathname.startsWith("/dashboard/change-password")) {
+    return NextResponse.redirect(new URL("/dashboard/change-password", req.nextUrl));
   }
 
   const role = req.auth!.user.role;

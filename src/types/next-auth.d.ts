@@ -6,6 +6,7 @@ declare module "next-auth" {
     role: Role;
     doctorId: string | null;
     nurseId: string | null;
+    mustChangePassword?: boolean;
   }
 
   interface Session {
@@ -14,6 +15,7 @@ declare module "next-auth" {
       role: Role;
       doctorId: string | null;
       nurseId: string | null;
+      mustChangePassword: boolean;
     } & DefaultSession["user"];
   }
 }
@@ -24,6 +26,7 @@ declare module "next-auth/jwt" {
     role: Role;
     doctorId: string | null;
     nurseId: string | null;
+    mustChangePassword?: boolean;
   }
 }
 
@@ -33,5 +36,6 @@ declare module "@auth/core/jwt" {
     role: Role;
     doctorId: string | null;
     nurseId: string | null;
+    mustChangePassword?: boolean;
   }
 }

@@ -7,3 +7,15 @@ onlyBuiltDependencies:
   - sharp
   - unrs-resolver
   - "@tailwindcss/oxide"
+overrides:
+  postcss: ">=8.5.23"
+  nanoid: ">=3.3.18"
+  fast-uri: ">=3.1.9"
+  js-yaml: ">=4.3.2 <5"
+  deepmerge-ts: ">=8.0.0 <9"
+  source-map-js: ">=1.2.2"
+  valibot: ">=1.4.2 <2"
+  effect: ">=3.22.1 <4"
+  "brace-expansion@1": ">=1.1.21"
+  "brace-expansion@2": ">=2.1.7"
+  "brace-expansion@5": ">=5.0.12"

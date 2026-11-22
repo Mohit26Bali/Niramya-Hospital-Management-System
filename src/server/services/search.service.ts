@@ -9,8 +9,11 @@ export type SearchResult = {
   href: string;
 };
 
-export async function globalSearch(query: string): Promise<SearchResult[]> {
-  const q = query.trim();
+export async function globalSearch(
+  query: string,
+  access: { billing: boolean } = { billing: false }
+): Promise<SearchResult[]> {
+  const q = query.trim().slice(0, 60);
   if (q.length < 2) return [];
 
   const [patients, doctors, departments, rooms, invoices] = await Promise.all([
@@ -46,11 +49,13 @@ export async function globalSearch(query: string): Promise<SearchResult[]> {
       where: { isActive: true, roomNumber: { contains: q, mode: "insensitive" } },
       take: 5,
     }),
-    prisma.invoice.findMany({
-      where: { invoiceNumber: { contains: q, mode: "insensitive" } },
-      take: 5,
-      include: { patient: true },
-    }),
+    access.billing
+      ? prisma.invoice.findMany({
+          where: { invoiceNumber: { contains: q, mode: "insensitive" } },
+          take: 5,
+          include: { patient: true },
+        })
+      : Promise.resolve([]),
   ]);
 
   const results: SearchResult[] = [];

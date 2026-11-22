@@ -117,10 +117,39 @@ const TREATMENT_PLAN_TEMPLATES = [
 ];
 const ADMITTED_BY_NAMES = ["Reception Desk", "Anjali Front Desk", "Ramesh Admissions", "Priya Reception", "Suresh Front Office"];
 
+/**
+ * This script DELETES every row and loads demo data with well-known passwords ("password123").
+ * It must never run against a real hospital database, so it only runs against a local database, or when
+ * ALLOW_SEED_WIPE=yes is set on purpose. For a real deployment use `pnpm db:bootstrap` instead.
+ */
+function assertSafeToWipe() {
+  const raw = process.env.DATABASE_URL ?? "";
+  let host = "";
+  let db = "";
+  try {
+    const u = new URL(raw);
+    host = u.hostname;
+    db = u.pathname.replace("/", "");
+  } catch {
+    throw new Error("DATABASE_URL is missing or not a valid URL.");
+  }
+  const local = host === "localhost" || host === "127.0.0.1" || host === "::1";
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_SEED_WIPE !== "yes") {
+    throw new Error("Refusing to seed with NODE_ENV=production. Set ALLOW_SEED_WIPE=yes only if you really mean it.");
+  }
+  if (!local && process.env.ALLOW_SEED_WIPE !== "yes") {
+    throw new Error(`Refusing to wipe database "${db}" on host "${host}": it is not local. Set ALLOW_SEED_WIPE=yes only if you really mean it.`);
+  }
+  console.log(`Seeding database "${db}" on ${host}. All existing data in it will be deleted.`);
+}
+
 async function main() {
+  assertSafeToWipe();
   console.log("Wiping existing data...");
   await prisma.$transaction([
     prisma.auditLog.deleteMany(),
+    prisma.contactMessage.deleteMany(),
+    prisma.counter.deleteMany(),
     prisma.doctorReview.deleteMany(),
     prisma.invoiceItem.deleteMany(),
     prisma.invoice.deleteMany(),
@@ -286,7 +315,7 @@ async function main() {
   // ── 10 more doctors, distributed across all 8 departments ──────────
   console.log("Seeding additional doctors...");
   function uniqueEmail(firstName: string, lastName: string): string {
-    let base = `dr.${firstName}${lastName}`.toLowerCase().replace(/[^a-z0-9.]/g, "");
+    const base = `dr.${firstName}${lastName}`.toLowerCase().replace(/[^a-z0-9.]/g, "");
     let email = `${base}@niramaya.com`;
     let i = 1;
     while (usedEmails.has(email)) {
@@ -344,7 +373,7 @@ async function main() {
   // ── 24 more nurses ───────────────────────────────────────────────────
   console.log("Seeding additional nurses...");
   function uniqueNurseEmail(firstName: string, lastName: string): string {
-    let base = `nurse.${firstName}${lastName}`.toLowerCase().replace(/[^a-z0-9.]/g, "");
+    const base = `nurse.${firstName}${lastName}`.toLowerCase().replace(/[^a-z0-9.]/g, "");
     let email = `${base}@niramaya.com`;
     let i = 1;
     while (usedEmails.has(email)) {
@@ -660,6 +689,7 @@ async function main() {
   };
   const admissions: AdmissionRec[] = [];
   const occupiedRoomIds = new Set<string>();
+  const patientsWithOpenAdmission = new Set<string>();
   const finalRoomStatus = new Map<string, RoomStatus>();
 
   for (let i = 1; i <= 70; i++) {
@@ -668,7 +698,9 @@ async function main() {
     const room = pick(availableRooms);
     occupiedRoomIds.add(room.id);
 
-    const patient = pick(patients);
+    // A patient can only be admitted once at a time (the database enforces it).
+    const eligiblePatients = patients.filter((p) => !patientsWithOpenAdmission.has(p.id));
+    const patient = pick(eligiblePatients.length ? eligiblePatients : patients);
     const doctor = pick(doctors);
     const nurse = Math.random() < 0.6 ? pick(nurses) : null;
 
@@ -694,6 +726,7 @@ async function main() {
       status = Math.random() < 0.9 ? AdmissionStatus.ADMITTED : AdmissionStatus.TRANSFERRED;
       days = Math.max(1, Math.ceil((Date.now() - admittedAt.getTime()) / (1000 * 60 * 60 * 24)));
       finalRoomStatus.set(room.id, RoomStatus.OCCUPIED);
+      patientsWithOpenAdmission.add(patient.id);
     }
 
     const admission = await prisma.admission.create({
@@ -982,7 +1015,23 @@ async function main() {
     AuditLog: await prisma.auditLog.count(),
   };
 
+  // The app hands out PAT-/APT-/ADM-/INV-/DOC-/NUR- numbers from a counter table; start each counter at the
+  // highest number the seed used so the next real record never collides.
+  const maxOf = (values: string[]) => values.reduce((m, v) => Math.max(m, Number(v.replace(/\D/g, "")) || 0), 0);
+  const counterValues: Record<string, number> = {
+    PAT: maxOf((await prisma.patient.findMany({ select: { patientNumber: true } })).map((r) => r.patientNumber)),
+    APT: maxOf((await prisma.appointment.findMany({ select: { appointmentNumber: true } })).map((r) => r.appointmentNumber)),
+    ADM: maxOf((await prisma.admission.findMany({ select: { admissionNumber: true } })).map((r) => r.admissionNumber)),
+    INV: maxOf((await prisma.invoice.findMany({ select: { invoiceNumber: true } })).map((r) => r.invoiceNumber)),
+    DOC: maxOf((await prisma.doctor.findMany({ select: { employeeCode: true } })).map((r) => r.employeeCode)),
+    NUR: maxOf((await prisma.nurse.findMany({ select: { employeeCode: true } })).map((r) => r.employeeCode)),
+  };
+  for (const [name, value] of Object.entries(counterValues)) {
+    await prisma.counter.upsert({ where: { name }, create: { name, value }, update: { value } });
+  }
+
   console.log("\nSeed complete. Row counts:");
+  console.log("DEMO DATA ONLY: every demo account uses the password 'password123'. Never use this seed on a real system.");
   console.table(counts);
 }
 

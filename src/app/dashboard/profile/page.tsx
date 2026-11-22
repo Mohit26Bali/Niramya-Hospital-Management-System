@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { PageHeader } from "@/components/shared/page-header";
@@ -6,6 +7,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { ROLE_LABELS } from "@/lib/constants";
 import { initials } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export default async function ProfilePage() {
   const session = await auth();
@@ -33,6 +35,16 @@ export default async function ProfilePage() {
               {ROLE_LABELS[role]}
             </Badge>
           </div>
+        </CardContent>
+      </Card>
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle className="text-base">Password</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button asChild variant="outline">
+            <Link href="/dashboard/change-password">Change password</Link>
+          </Button>
         </CardContent>
       </Card>
     </div>

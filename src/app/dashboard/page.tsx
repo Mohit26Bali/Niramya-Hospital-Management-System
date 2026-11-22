@@ -15,11 +15,17 @@ import {
   LatestInvoicesPanel,
 } from "@/components/dashboard/recent-activity-panels";
 import { formatCurrency } from "@/lib/utils";
+import { can, requirePermission } from "@/lib/permissions";
 import * as DashboardService from "@/server/services/dashboard.service";
 
-const MONTH_FORMATTER = new Intl.DateTimeFormat("en-IN", { month: "short" });
+// The month values are already the hospital's local month start, stored as a plain date: read them as UTC.
+const MONTH_FORMATTER = new Intl.DateTimeFormat("en-IN", { month: "short", timeZone: "UTC" });
 
 export default async function DashboardPage() {
+  // Doctors and nurses see clinical numbers; money (revenue, bills) is for the front desk and admins.
+  const session = await requirePermission("patient", "read");
+  const showBilling = can(session.user.role, "billing", "read");
+
   const [
     stats,
     revenueByMonth,
@@ -34,7 +40,7 @@ export default async function DashboardPage() {
     latestInvoices,
   ] = await Promise.all([
     DashboardService.getStatCards(),
-    DashboardService.getRevenueByMonth(),
+    showBilling ? DashboardService.getRevenueByMonth() : Promise.resolve([]),
     DashboardService.getAppointmentsByMonth(),
     DashboardService.getPatientsByDepartment(),
     DashboardService.getGenderDistribution(),
@@ -43,7 +49,7 @@ export default async function DashboardPage() {
     DashboardService.getRecentPatients(),
     DashboardService.getTodaysAppointmentsList(),
     DashboardService.getLatestAdmissions(),
-    DashboardService.getLatestInvoices(),
+    showBilling ? DashboardService.getLatestInvoices() : Promise.resolve([]),
   ]);
 
   const revenueChartData = revenueByMonth.map((r) => ({
@@ -69,25 +75,31 @@ export default async function DashboardPage() {
         <StatCard title="Today's Appointments" value={String(stats.todaysAppointments)} icon={CalendarClock} />
         <StatCard title="Occupied Rooms" value={`${stats.occupiedRooms}/${stats.totalRooms}`} icon={BedDouble} />
         <StatCard title="Admissions Today" value={String(stats.admissionsToday)} icon={ClipboardList} />
-        <StatCard
-          title="Revenue This Month"
-          value={formatCurrency(stats.revenueThisMonth)}
-          icon={Wallet}
-          trend={stats.revenueTrendPct}
-        />
+        {showBilling && (
+          <StatCard
+            title="Revenue This Month"
+            value={formatCurrency(stats.revenueThisMonth)}
+            icon={Wallet}
+            trend={stats.revenueTrendPct}
+          />
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Upcoming (7 days)" value={String(stats.upcomingAppointments)} icon={CalendarClock} />
         <StatCard title="Bed Occupancy" value={`${stats.bedOccupancyPct.toFixed(0)}%`} icon={BedDouble} />
-        <StatCard title="Pending Bills" value={`${stats.pendingBillsCount} · ${formatCurrency(stats.pendingBillsAmount)}`} icon={Wallet} />
+        {showBilling && (
+          <StatCard title="Pending Bills" value={`${stats.pendingBillsCount} · ${formatCurrency(stats.pendingBillsAmount)}`} icon={Wallet} />
+        )}
         <StatCard title="Doctors On Duty" value={String(stats.doctorsOnDuty)} icon={Stethoscope} />
       </div>
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <RevenueChart data={revenueChartData} />
-        </div>
+        {showBilling && (
+          <div className="lg:col-span-2">
+            <RevenueChart data={revenueChartData} />
+          </div>
+        )}
         <OccupancyChart data={roomOccupancy} />
       </div>
 
@@ -107,7 +119,7 @@ export default async function DashboardPage() {
         <RecentPatientsPanel patients={recentPatients} />
         <TodaysAppointmentsPanel appointments={todaysAppointments} />
         <LatestAdmissionsPanel admissions={latestAdmissions} />
-        <LatestInvoicesPanel invoices={latestInvoices} />
+        {showBilling && <LatestInvoicesPanel invoices={latestInvoices} />}
       </div>
     </div>
   );

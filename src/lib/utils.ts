@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { HOSPITAL_TIMEZONE } from "@/lib/time";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -15,11 +16,11 @@ export function formatCurrency(amount: number | string): string {
 }
 
 export function formatDate(date: Date | string): string {
-  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(new Date(date));
+  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeZone: HOSPITAL_TIMEZONE }).format(new Date(date));
 }
 
 export function formatDateTime(date: Date | string): string {
-  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short" }).format(
+  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: HOSPITAL_TIMEZONE }).format(
     new Date(date)
   );
 }

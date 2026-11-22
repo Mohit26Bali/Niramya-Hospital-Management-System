@@ -52,14 +52,23 @@ prisma/
 
 ## Roles & permissions
 
-| Role | Can | Cannot |
-|---|---|---|
-| **Admin** | Everything — staff, patients, rooms, billing, appointments, settings | — |
-| **Doctor** | View today's appointments, search patients, write prescriptions, create medical records, update diagnosis | Delete patients, edit billing, manage staff |
-| **Nurse** | Update patient vitals, update admission status, view assigned patients | Manage billing, delete records |
-| **Receptionist** | Register patients, schedule appointments, admit/discharge patients, generate invoices | Modify medical records |
+| Area | Admin | Doctor | Nurse | Receptionist |
+|---|---|---|---|---|
+| Patients (demographics) | full | read | read | register / edit |
+| Medical records, prescriptions | full | write | read | **no access** |
+| Appointments | full | own schedule | read | book / change |
+| Admissions and rooms | full | read | update status | admit / discharge |
+| Invoices and payments | full | **no access** | **no access** | create / record payments |
+| Staff accounts, settings, activity log | full | — | — | — |
+| Website contact messages | full | — | — | read / mark handled |
 
-The full capability matrix lives in `src/lib/permissions.ts` and is enforced server-side in every Server Action via `requirePermission(resource, action)` — the UI hiding buttons is a courtesy, not the security boundary.
+Enforced on the server, not just in the UI:
+
+- Every Server Action (reads included) calls `requirePermission(resource, action)`. Server Actions are public HTTP endpoints, so each one checks for itself.
+- The check re-reads the user from the database each time: a deactivated user, or a changed role, takes effect immediately (the signed-in browser is redirected to `/login?reason=ended`).
+- Clinical and billing data are scoped: the patient chart only loads the tabs your role may see, and the dashboard hides revenue from clinicians.
+- Opening a patient chart is written to the activity log (`VIEW`).
+- The matrix lives in `src/lib/permissions.ts`.
 
 ## Getting started
 
@@ -77,57 +86,51 @@ pnpm install
 
 ### 3. Configure environment
 
-Copy `.env.example` to `.env` and fill in your own values:
-
 ```bash
 cp .env.example .env
 ```
 
-```
-DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/niramaya?schema=public"
-AUTH_SECRET="generate-with-pnpm-dlx-auth-secret"
-NEXTAUTH_URL="http://localhost:3000"
-```
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` | yes | PostgreSQL connection string |
+| `AUTH_SECRET` | yes | Signs session tokens (`pnpm dlx auth secret`); different per environment |
+| `NEXTAUTH_URL` | yes | Public URL of the app |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME` | for `db:bootstrap` | First administrator |
+| `NEXT_PUBLIC_HOSPITAL_TIMEZONE` | no (Asia/Kolkata) | Zone for "today", appointment hours, monthly reports |
+| `BOOKING_OPEN_HOUR`, `BOOKING_CLOSE_HOUR` | no (8, 20) | Hours when public online booking is accepted |
+| `TRUSTED_PROXY_HOPS` | no (0) | Reverse proxies in front of the app; decides whether `X-Forwarded-For` is trusted for rate limits |
+| `NEXT_PUBLIC_SHOW_DEMO_ACCOUNTS` | no (false) | Shows the demo logins on the login page (demo only) |
+| `ALLOW_SEED_WIPE` | no | Lets `db:seed` wipe a non-local or production database. Do not set on a real system |
 
-Create the database if it doesn't exist yet:
-
-```sql
-CREATE DATABASE niramaya;
-```
-
-### 4. Run migrations
+Create the database (`CREATE DATABASE niramaya;`), then apply migrations:
 
 ```bash
-pnpm prisma migrate dev --name init
+pnpm db:deploy      # applies prisma/migrations (use db:migrate while developing schema changes)
 ```
 
-### 5. Seed realistic demo data
+### 4. First administrator (real use)
+
+```bash
+pnpm db:bootstrap   # reads ADMIN_EMAIL / ADMIN_PASSWORD / ADMIN_NAME; safe to re-run
+```
+
+The admin must change the password at first sign-in. Staff accounts are then created from the portal: the creating admin sees a temporary password once, and the new user must replace it before using anything.
+
+### 5. Or: demo data
 
 ```bash
 pnpm db:seed
 ```
 
-This wipes and reseeds ~1,400 rows: 8 departments, 12 doctors, 25 nurses, 150 patients, 400 appointments, 300 medical records, 250 prescriptions, 70 admissions, 150 invoices, 50 rooms, and an activity log — all with realistic Indian names, phone numbers, addresses, and medical data, and internally consistent relationships (occupied rooms match active admissions, invoices tie back to real appointments/admissions, etc.).
+**Wipes the database** and loads ~1,400 fictional rows (8 departments, 12 doctors, 25 nurses, 150 patients, 400 appointments, rooms, invoices, …). It refuses to run against a non-local host or `NODE_ENV=production`. Demo accounts (password `password123`): `admin@hospital.com`, `doctor1@hospital.com`, `doctor2@hospital.com`, `nurse1@hospital.com`, `reception@hospital.com`. These exist only in seeded demo databases.
 
-### 6. Run the app
+### 6. Run
 
 ```bash
 pnpm dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) for the public site, or go straight to [http://localhost:3000/login](http://localhost:3000/login) for the staff portal.
-
-### Demo accounts
-
-Staff portal login, all seeded with password `password123`:
-
-| Email | Role |
-|---|---|
-| admin@hospital.com | Admin |
-| doctor1@hospital.com | Doctor |
-| doctor2@hospital.com | Doctor |
-| nurse1@hospital.com | Nurse |
-| reception@hospital.com | Receptionist |
+Public site at [http://localhost:3000](http://localhost:3000), staff portal at [/login](http://localhost:3000/login).
 
 ## Useful scripts
 
@@ -136,7 +139,9 @@ pnpm dev          # start dev server
 pnpm build        # production build (also type-checks)
 pnpm start        # run the production build
 pnpm db:push      # push schema changes without a migration (quick prototyping)
-pnpm db:migrate   # create + apply a new migration
+pnpm db:migrate   # create + apply a new migration (development)
+pnpm db:deploy    # apply existing migrations (production)
+pnpm db:bootstrap # create the first admin on a real database
 pnpm db:seed      # wipe and reseed demo data
 pnpm db:studio    # open Prisma Studio to browse the database
 ```
@@ -179,12 +184,33 @@ This is a standard Next.js + PostgreSQL app, so any platform that runs Node work
 2. **Host the app on [Vercel](https://vercel.com)** (built by the makers of Next.js, zero-config for this stack):
    - Push this repo to GitHub, then import it in Vercel.
    - Set environment variables in the Vercel project settings: `DATABASE_URL` (from step 1), `AUTH_SECRET` (generate a new one for production with `pnpm dlx auth secret` — never reuse the dev one), `NEXTAUTH_URL` (your production URL, e.g. `https://your-app.vercel.app`).
-   - Vercel runs `pnpm build` automatically. Add `prisma migrate deploy` to the build step so migrations apply on every deploy — either set the project's **Build Command** to `pnpm prisma migrate deploy && pnpm build`, or add a `postinstall`/`vercel-build` script in `package.json` that does the same.
-3. **Seed production data once**, after the first successful deploy: run `pnpm db:seed` locally with `DATABASE_URL` temporarily pointed at the production database (or via Vercel's CLI: `vercel env pull` to get the prod env vars locally, then `pnpm db:seed`). Do this once — re-running it wipes and reseeds, which you don't want on a live site once real bookings start coming in.
+   - Vercel runs `pnpm build` automatically. Add `prisma migrate deploy` to the build step so migrations apply on every deploy (an existing database with two open admissions for one patient will fail the new unique index: discharge the duplicate first) — either set the project's **Build Command** to `pnpm prisma migrate deploy && pnpm build`, or add a `postinstall`/`vercel-build` script in `package.json` that does the same.
+3. **Create the first administrator** with `pnpm db:bootstrap` (set `ADMIN_EMAIL`/`ADMIN_PASSWORD` for that one command). **Do not run `db:seed` on a live system**: it wipes data, creates accounts with a publicly documented password, and refuses to run there anyway.
+   Set `TRUSTED_PROXY_HOPS=1` behind Vercel so rate limits see the visitor's address.
 4. **Auth callback URL**: Auth.js needs `NEXTAUTH_URL` to match your real deployed domain exactly, or login redirects will break.
 
 Alternative hosts (Railway, Render, a plain VPS) work the same way — the only Vercel-specific part above is the build-command wiring; everything else (env vars, migrate-then-build, one-time seed) applies universally.
 
-## Future scope
+## Security measures
 
-Deliberately out of scope for this project (see the design brief): pharmacy/inventory management, laboratory management, payroll, and ambulance tracking. The data model and service-layer architecture are built to extend cleanly into those modules later without a redesign.
+- Session cookies (JWT) last 8 hours; sign-in limited per address and per account, with generic errors and constant-time password comparison for unknown emails.
+- Passwords: bcrypt cost 12, minimum 10 characters with letters and numbers, common-password list, forced change after an admin-issued temporary password.
+- Public booking and contact forms: per-address and per-phone limits, hidden honeypot field, bounded input, no patient numbers returned, existing patients are only reused when phone, date of birth and last name all match.
+- Security headers (CSP, frame denial, nosniff, referrer policy, HSTS), `no-store` on `/dashboard` and `/api`.
+- Money is calculated in whole paise; payments are locked and can only go up to the invoice total.
+- Appointment and bed bookings are serialised with database advisory locks; a patient can hold only one open admission (partial unique index); document numbers come from an atomic counter.
+
+## Known limitations
+
+- Rate limits and sign-in lockouts live in memory: per server instance, reset on restart. Several instances or serverless need a shared store (Redis) for strict limits.
+- No password-reset email flow (an admin issues a new temporary password), no two-factor sign-in.
+- Audit trail records changes and patient-chart opens, not every read of a list.
+- No vitals ranges, drug-allergy or interaction checks; clinical safety rules are out of scope.
+- Public bookings create a pending appointment (and a placeholder patient if new); staff must confirm and complete the details by phone.
+- Contact messages are stored, not emailed; someone must check **Messages** in the portal.
+- No automated email/SMS reminders, no file uploads (reports, scans), no insurance claims.
+- Test coverage covers the services and access rules (run locally, not in this repository); there is no CI.
+
+## Possible improvements
+
+Shared rate-limit store, email/SMS notifications, password reset and MFA, full read audit, appointment slots per doctor schedule, pharmacy/lab/payroll modules, backups and retention policy, accessibility audit with assistive-technology testing.

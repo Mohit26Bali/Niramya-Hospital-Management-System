@@ -9,6 +9,7 @@ import * as PrescriptionService from "@/server/services/prescription.service";
 export async function listPrescriptionsAction(
   searchParams: Record<string, string | string[] | undefined>
 ) {
+  await requirePermission("prescription", "read");
   const params = parseSearchParams(searchParams);
   return PrescriptionService.listPrescriptions(params);
 }

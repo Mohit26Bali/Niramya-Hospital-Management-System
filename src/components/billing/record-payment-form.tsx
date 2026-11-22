@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -58,7 +59,7 @@ export function RecordPaymentForm({
     const parsed = recordPaymentSchema.parse(values);
     startTransition(async () => {
       try {
-        await recordPaymentAction(invoice.id, parsed);
+        unwrap(await recordPaymentAction(invoice.id, parsed));
         toast.success("Payment recorded");
         onSuccess();
       } catch (error) {

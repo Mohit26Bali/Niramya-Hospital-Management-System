@@ -1,25 +1,13 @@
 import "server-only";
 import { prisma } from "@/lib/prisma";
+import { HOSPITAL_TIMEZONE, endOfZonedDay, startOfZonedDay, startOfZonedMonth } from "@/lib/time";
 
-function startOfDay(date = new Date()) {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-function endOfDay(date = new Date()) {
-  const d = new Date(date);
-  d.setHours(23, 59, 59, 999);
-  return d;
-}
-function startOfMonth(date = new Date()) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-function startOfPrevMonth(date = new Date()) {
-  return new Date(date.getFullYear(), date.getMonth() - 1, 1);
-}
-function endOfPrevMonth(date = new Date()) {
-  return new Date(date.getFullYear(), date.getMonth(), 0, 23, 59, 59, 999);
-}
+// "Today" and "this month" mean the hospital's calendar, not the server's (a UTC server would roll over at 5:30 am).
+const startOfDay = (date = new Date()) => startOfZonedDay(date);
+const endOfDay = (date = new Date()) => endOfZonedDay(date);
+const startOfMonth = (date = new Date()) => startOfZonedMonth(date);
+const startOfPrevMonth = (date = new Date()) => startOfZonedMonth(new Date(startOfZonedMonth(date).getTime() - 1));
+const endOfPrevMonth = (date = new Date()) => new Date(startOfZonedMonth(date).getTime() - 1);
 
 function trendPct(current: number, previous: number): number {
   if (previous === 0) return current > 0 ? 100 : 0;
@@ -107,7 +95,7 @@ export async function getStatCards() {
 
 export async function getRevenueByMonth() {
   const rows = await prisma.$queryRaw<{ month: Date; revenue: number }[]>`
-    SELECT date_trunc('month', "paidAt") AS month, SUM("paidAmount")::float AS revenue
+    SELECT date_trunc('month', timezone(${HOSPITAL_TIMEZONE}, "paidAt" AT TIME ZONE 'UTC')) AS month, SUM("paidAmount")::float AS revenue
     FROM "Invoice"
     WHERE "paidAt" IS NOT NULL AND "paidAt" >= NOW() - INTERVAL '11 months'
     GROUP BY 1
@@ -118,7 +106,7 @@ export async function getRevenueByMonth() {
 
 export async function getAppointmentsByMonth() {
   const rows = await prisma.$queryRaw<{ month: Date; count: number }[]>`
-    SELECT date_trunc('month', "scheduledAt") AS month, COUNT(*)::int AS count
+    SELECT date_trunc('month', timezone(${HOSPITAL_TIMEZONE}, "scheduledAt" AT TIME ZONE 'UTC')) AS month, COUNT(*)::int AS count
     FROM "Appointment"
     WHERE "scheduledAt" >= NOW() - INTERVAL '11 months'
     GROUP BY 1

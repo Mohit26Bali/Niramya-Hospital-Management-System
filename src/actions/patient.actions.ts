@@ -7,15 +7,18 @@ import { patientSchema, type PatientInput } from "@/schemas/patient.schema";
 import * as PatientService from "@/server/services/patient.service";
 
 export async function listPatientsAction(searchParams: Record<string, string | string[] | undefined>) {
+  await requirePermission("patient", "read");
   const params = parseSearchParams(searchParams);
   return PatientService.listPatients(params);
 }
 
 export async function listAllActivePatientsAction() {
+  await requirePermission("patient", "read");
   return PatientService.listAllActivePatients();
 }
 
 export async function getPatientAction(id: string) {
+  await requirePermission("patient", "read");
   return PatientService.getPatientById(id);
 }
 

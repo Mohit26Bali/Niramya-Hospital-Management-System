@@ -14,6 +14,7 @@ import * as MedicalRecordService from "@/server/services/medical-record.service"
 export async function listMedicalRecordsAction(
   searchParams: Record<string, string | string[] | undefined>
 ) {
+  await requirePermission("medicalRecord", "read");
   const params = parseSearchParams(searchParams);
   return MedicalRecordService.listMedicalRecords(params);
 }

@@ -8,11 +8,13 @@ import type { RoomStatus } from "@prisma/client";
 import * as RoomService from "@/server/services/room.service";
 
 export async function listRoomsAction(searchParams: Record<string, string | string[] | undefined>) {
+  await requirePermission("room", "read");
   const params = parseSearchParams(searchParams);
   return RoomService.listRooms(params);
 }
 
 export async function listAllActiveRoomsAction() {
+  await requirePermission("room", "read");
   return RoomService.listAllActiveRooms();
 }
 

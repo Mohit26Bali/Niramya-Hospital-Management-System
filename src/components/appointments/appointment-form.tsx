@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -74,10 +75,10 @@ export function AppointmentForm({
     startTransition(async () => {
       try {
         if (appointment) {
-          await updateAppointmentAction(appointment.id, parsed);
+          unwrap(await updateAppointmentAction(appointment.id, parsed));
           toast.success("Appointment updated");
         } else {
-          await createAppointmentAction(parsed);
+          unwrap(await createAppointmentAction(parsed));
           toast.success("Appointment created");
         }
         onSuccess();

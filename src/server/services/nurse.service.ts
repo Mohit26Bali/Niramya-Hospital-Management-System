@@ -1,5 +1,6 @@
 import "server-only";
-import bcrypt from "bcryptjs";
+import { generateTempPassword, hashPassword } from "@/lib/password";
+import { nextNumber } from "@/lib/sequence";
 import { prisma } from "@/lib/prisma";
 import { buildPaginatedResult, toSkipTake, type PaginationParams } from "@/lib/pagination";
 import type { NurseInput, NurseCreateInput } from "@/schemas/nurse.schema";
@@ -8,7 +9,6 @@ import type { Role } from "@prisma/client";
 
 type Actor = { id: string; name: string; role: Role };
 
-const DEFAULT_PASSWORD = "password123";
 
 export async function listNurses(params: PaginationParams) {
   const where = {
@@ -44,23 +44,21 @@ export async function listAllActiveNurses() {
   });
 }
 
-async function generateEmployeeCode() {
-  const count = await prisma.nurse.count();
-  return `NUR-${String(count + 1).padStart(5, "0")}`;
-}
 
 export async function createNurse(input: NurseCreateInput, actor: Actor) {
   const { email, departmentId, ...nurseFields } = input;
-  const employeeCode = await generateEmployeeCode();
-  const passwordHash = bcrypt.hashSync(DEFAULT_PASSWORD, 10);
+  const employeeCode = await nextNumber("NUR");
+  const tempPassword = generateTempPassword();
+  const passwordHash = hashPassword(tempPassword);
 
   const nurse = await prisma.$transaction(async (tx) => {
     const user = await tx.user.create({
       data: {
         name: `${nurseFields.firstName} ${nurseFields.lastName}`,
-        email,
+        email: email.trim().toLowerCase(),
         passwordHash,
         role: "NURSE",
+        mustChangePassword: true,
       },
     });
 
@@ -88,7 +86,7 @@ export async function createNurse(input: NurseCreateInput, actor: Actor) {
     details: { name: `${nurse.firstName} ${nurse.lastName}` },
   });
 
-  return nurse;
+  return { nurse, tempPassword };
 }
 
 export async function updateNurse(id: string, input: NurseInput, actor: Actor) {
@@ -127,9 +125,16 @@ export async function updateNurse(id: string, input: NurseInput, actor: Actor) {
 }
 
 export async function softDeleteNurse(id: string, actor: Actor) {
-  const nurse = await prisma.nurse.update({
-    where: { id },
-    data: { isActive: false, deletedAt: new Date() },
+  const open = await prisma.admission.count({ where: { nurseId: id, status: "ADMITTED" } });
+  if (open > 0) {
+    throw new Error(`This nurse is still assigned to ${open} admitted patient(s). Reassign them first.`);
+  }
+
+  // Removing a nurse must also end their LOGIN.
+  const nurse = await prisma.$transaction(async (tx) => {
+    const n = await tx.nurse.update({ where: { id }, data: { isActive: false, deletedAt: new Date() } });
+    await tx.user.update({ where: { id: n.userId }, data: { isActive: false } });
+    return n;
   });
 
   await recordAudit({

@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useState } from "react";
 import Link from "next/link";
 import type { ColumnDef } from "@tanstack/react-table";
@@ -44,7 +45,7 @@ function ActionsCell({ invoice, canDelete }: { invoice: InvoiceRow; canDelete: b
             title="Delete invoice?"
             description={`Invoice "${invoice.invoiceNumber}" will be permanently deleted.`}
             onConfirm={async () => {
-              await deleteInvoiceAction(invoice.id);
+              unwrap(await deleteInvoiceAction(invoice.id));
               toast.success("Invoice deleted");
             }}
           />

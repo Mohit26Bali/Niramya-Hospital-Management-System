@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useEffect, useState, useTransition } from "react";
 import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -75,8 +76,12 @@ export function DoctorForm({
           toast.success("Doctor updated");
         } else {
           const parsed = doctorCreateSchema.parse(values);
-          await createDoctorAction(parsed);
-          toast.success("Doctor created");
+          const { tempPassword } = unwrap(await createDoctorAction(parsed));
+          toast.success("Doctor created", {
+            description: `Temporary password: ${tempPassword}  (shown only once. Give it to the doctor; they must change it at first sign-in.)`,
+            duration: Infinity,
+            closeButton: true,
+          });
         }
         onSuccess();
       } catch (error) {

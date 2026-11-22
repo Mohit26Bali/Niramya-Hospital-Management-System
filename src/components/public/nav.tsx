@@ -94,7 +94,9 @@ export function PublicNav() {
 
         <div className="flex items-center gap-2 lg:hidden">
           <Button asChild size="sm">
-            <Link href="/appointments">Book Appointment</Link>
+            <Link href="/appointments">
+              Book<span className="hidden min-[400px]:inline">&nbsp;Appointment</span>
+            </Link>
           </Button>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>

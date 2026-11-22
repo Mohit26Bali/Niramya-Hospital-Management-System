@@ -29,6 +29,7 @@ export function ContactForm() {
       phone: "",
       subject: "",
       message: "",
+      website: "",
     },
   });
 
@@ -36,8 +37,12 @@ export function ContactForm() {
     const parsed = contactSchema.parse(values);
     startTransition(async () => {
       try {
-        await submitContactMessageAction(parsed);
-        toast.success("Thanks! We'll be in touch soon.");
+        const result = await submitContactMessageAction(parsed);
+        if (!result.success) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success("Thanks! Your message has reached our front desk and we will get back to you.");
         form.reset();
       } catch (error) {
         toast.error(error instanceof Error ? error.message : "Something went wrong");
@@ -48,6 +53,13 @@ export function ContactForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {/* Honeypot: hidden from people and screen readers; only scripts fill it in. */}
+        <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+          <label>
+            Leave this field empty
+            <input type="text" tabIndex={-1} autoComplete="off" {...form.register("website")} />
+          </label>
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}

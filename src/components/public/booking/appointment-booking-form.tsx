@@ -10,8 +10,7 @@ import {
   type PublicBookingFormValues,
 } from "@/schemas/public-booking.schema";
 import { submitPublicBookingAction } from "@/actions/public-booking.actions";
-import { listAllActiveDepartmentsAction } from "@/actions/department.actions";
-import { listAllActiveDoctorsAction } from "@/actions/doctor.actions";
+import { listPublicDepartmentsAction, listPublicDoctorsAction } from "@/actions/public-directory.actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,9 +32,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import type { Department, Doctor } from "@prisma/client";
-
-type DoctorWithDept = Omit<Doctor, "consultationFee"> & {
+// Only the public fields (see actions/public-directory.actions.ts).
+type Department = { id: string; name: string };
+type DoctorWithDept = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  specialization: string;
+  departmentId: string;
   consultationFee: number;
   department: Department;
 };
@@ -57,12 +61,11 @@ export function AppointmentBookingForm({
   const [doctors, setDoctors] = useState<DoctorWithDept[]>([]);
   const [confirmation, setConfirmation] = useState<{
     appointmentNumber: string;
-    patientNumber: string;
   } | null>(null);
 
   useEffect(() => {
-    listAllActiveDepartmentsAction().then(setDepartments);
-    listAllActiveDoctorsAction().then((data) => setDoctors(data));
+    listPublicDepartmentsAction().then(setDepartments);
+    listPublicDoctorsAction().then((data) => setDoctors(data));
   }, []);
 
   const form = useForm<PublicBookingFormValues>({
@@ -79,6 +82,7 @@ export function AppointmentBookingForm({
       preferredDateTime: "",
       appointmentType: "CONSULTATION",
       reason: "",
+      website: "",
     },
   });
 
@@ -107,10 +111,7 @@ export function AppointmentBookingForm({
     startTransition(async () => {
       const result = await submitPublicBookingAction(parsed);
       if (result.success) {
-        setConfirmation({
-          appointmentNumber: result.appointmentNumber,
-          patientNumber: result.patientNumber,
-        });
+        setConfirmation({ appointmentNumber: result.appointmentNumber });
       } else {
         toast.error(result.error);
       }
@@ -127,15 +128,9 @@ export function AppointmentBookingForm({
             Our team will confirm your appointment shortly. Please save your appointment
             number for reference.
           </p>
-          <div className="mt-2 grid w-full gap-3 rounded-lg border border-border bg-muted/40 p-4 text-left sm:grid-cols-2">
-            <div>
-              <p className="text-xs text-muted-foreground">Appointment Number</p>
-              <p className="font-mono text-lg font-semibold">{confirmation.appointmentNumber}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Patient Number</p>
-              <p className="font-mono text-lg font-semibold">{confirmation.patientNumber}</p>
-            </div>
+          <div className="mt-2 w-full rounded-lg border border-border bg-muted/40 p-4 text-left">
+            <p className="text-xs text-muted-foreground">Appointment Number</p>
+            <p className="font-mono text-lg font-semibold">{confirmation.appointmentNumber}</p>
           </div>
         </CardContent>
       </Card>
@@ -145,6 +140,13 @@ export function AppointmentBookingForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="mx-auto max-w-3xl space-y-6">
+        {/* Honeypot: hidden from people and from screen readers; only scripts fill it in. */}
+        <div aria-hidden="true" className="absolute -left-[9999px] h-0 w-0 overflow-hidden">
+          <label>
+            Leave this field empty
+            <input type="text" tabIndex={-1} autoComplete="off" {...form.register("website")} />
+          </label>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>

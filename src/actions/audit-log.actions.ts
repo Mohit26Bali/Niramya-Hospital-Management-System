@@ -7,7 +7,7 @@ import { listAuditLogs } from "@/server/services/audit-log-list.service";
 export async function listAuditLogsAction(
   searchParams: Record<string, string | string[] | undefined>
 ) {
-  await requirePermission("settings", "update");
+  await requirePermission("auditLog", "read");
   const params = parseSearchParams(searchParams);
   return listAuditLogs(params);
 }

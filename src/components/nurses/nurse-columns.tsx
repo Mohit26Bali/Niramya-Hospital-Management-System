@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Pencil, Trash2 } from "lucide-react";
@@ -37,7 +38,7 @@ function ActionsCell({ nurse }: { nurse: NurseRow }) {
           title="Delete nurse?"
           description={`${nurse.firstName} ${nurse.lastName} will be archived and hidden from lists.`}
           onConfirm={async () => {
-            await deleteNurseAction(nurse.id);
+            unwrap(await deleteNurseAction(nurse.id));
             toast.success("Nurse deleted");
           }}
         />

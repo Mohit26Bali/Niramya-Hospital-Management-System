@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local-only working files
+/tests/
+/_local/
+CLAUDE.md
+AGENTS.md
+.claude/

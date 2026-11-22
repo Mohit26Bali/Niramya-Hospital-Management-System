@@ -1,5 +1,6 @@
 "use client";
 
+import { unwrap } from "@/lib/action-result";
 import { useState } from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 import { Pencil, XCircle, CheckCircle2, UserX } from "lucide-react";
@@ -27,7 +28,7 @@ function ActionsCell({ appointment }: { appointment: AppointmentRow }) {
 
   async function setStatus(status: "COMPLETED" | "NO_SHOW") {
     try {
-      await updateAppointmentStatusAction(appointment.id, status);
+      unwrap(await updateAppointmentStatusAction(appointment.id, status));
       toast.success(`Appointment marked ${status === "COMPLETED" ? "completed" : "no-show"}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
@@ -62,7 +63,7 @@ function ActionsCell({ appointment }: { appointment: AppointmentRow }) {
             description={`Appointment ${appointment.appointmentNumber} will be marked as cancelled.`}
             confirmLabel="Cancel appointment"
             onConfirm={async () => {
-              await cancelAppointmentAction(appointment.id);
+              unwrap(await cancelAppointmentAction(appointment.id));
               toast.success("Appointment cancelled");
             }}
           />

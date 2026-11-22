@@ -52,6 +52,8 @@ export function PatientDetail({
   prescriptions,
   admissions,
   invoices,
+  showClinical = true,
+  showBilling = true,
 }: {
   patient: Patient;
   canUpdate: boolean;
@@ -61,6 +63,10 @@ export function PatientDetail({
   prescriptions: (Prescription & { doctor: Doctor; items: PrescriptionItem[] })[];
   admissions: (Admission & { doctor: Doctor; room: Room })[];
   invoices: (Invoice & { items: InvoiceItem[] })[];
+  /** False for roles that may not see clinical notes / prescriptions (the front desk). */
+  showClinical?: boolean;
+  /** False for roles that may not see bills (doctors, nurses). */
+  showBilling?: boolean;
 }) {
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
@@ -130,9 +136,9 @@ export function PatientDetail({
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
           <TabsTrigger value="appointments">Appointments</TabsTrigger>
-          <TabsTrigger value="medical-history">Medical History</TabsTrigger>
-          <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>
-          <TabsTrigger value="billing">Billing</TabsTrigger>
+          {showClinical && <TabsTrigger value="medical-history">Medical History</TabsTrigger>}
+          {showClinical && <TabsTrigger value="prescriptions">Prescriptions</TabsTrigger>}
+          {showBilling && <TabsTrigger value="billing">Billing</TabsTrigger>}
           <TabsTrigger value="admissions">Admissions</TabsTrigger>
         </TabsList>
 
@@ -257,6 +263,7 @@ export function PatientDetail({
           )}
         </TabsContent>
 
+        {showClinical && (
         <TabsContent value="medical-history">
           {medicalRecords.length === 0 ? (
             <EmptyState title="No medical history yet" description="Visit records and diagnoses will appear here." />
@@ -276,7 +283,9 @@ export function PatientDetail({
             </div>
           )}
         </TabsContent>
+        )}
 
+        {showClinical && (
         <TabsContent value="prescriptions">
           {prescriptions.length === 0 ? (
             <EmptyState title="No prescriptions yet" description="Prescribed medications will appear here." />
@@ -297,7 +306,9 @@ export function PatientDetail({
             </div>
           )}
         </TabsContent>
+        )}
 
+        {showBilling && (
         <TabsContent value="billing">
           {invoices.length === 0 ? (
             <EmptyState title="No billing records yet" description="Invoices and payment history will appear here." />
@@ -322,6 +333,7 @@ export function PatientDetail({
             </div>
           )}
         </TabsContent>
+        )}
 
         <TabsContent value="admissions">
           {admissions.length === 0 ? (
